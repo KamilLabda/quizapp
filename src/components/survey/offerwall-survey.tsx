@@ -123,24 +123,31 @@ export function OfferwallSurvey({ userId, onComplete }: OfferwallSurveyProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-3">
         <CardTitle>Surveys & Offers</CardTitle>
         <CardDescription>
           Complete surveys and offers to earn extra points. Click on any offer to get started.
         </CardDescription>
       </CardHeader>
-      <CardContent className="px-3 md:px-6">
-        <div className="border rounded-lg overflow-hidden min-h-[400px] md:min-h-[600px]">
+      <CardContent className="p-0">
+        <div className="relative w-full" style={{ height: 'calc(100vh - 300px)', minHeight: '600px', maxHeight: '800px' }}>
           <iframe
             src={offerwallUrl}
-            className="w-full h-full border-0"
-            style={{ minHeight: '400px', width: '100%' }}
+            className="w-full h-full border-0 block"
+            style={{ 
+              width: '100%', 
+              height: '100%',
+              display: 'block',
+              border: 'none',
+              overflow: 'auto'
+            }}
             title="Offerwall Surveys"
-            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation"
+            allow="fullscreen"
           />
         </div>
-        <div className="mt-3 md:mt-4 text-xs md:text-sm text-muted-foreground flex items-center gap-2 justify-center">
+        <div className="px-3 md:px-6 py-3 text-xs md:text-sm text-muted-foreground flex items-center gap-2 justify-center border-t">
           <ExternalLink className="h-3 w-3 md:h-4 md:w-4" />
           <span>Surveys are provided by our partner Offerwall network</span>
         </div>

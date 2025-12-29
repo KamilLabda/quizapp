@@ -78,11 +78,11 @@ export function Header() {
           <div className="relative">
             <ClipboardList className="h-5 w-5 md:h-6 md:w-6 text-primary transition-transform group-hover:scale-110" />
           </div>
-          <span className="hidden sm:inline text-lg md:text-xl font-black bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent tracking-tight">
+          <span className="hidden min-[375px]:inline text-lg md:text-xl font-black bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent tracking-tight">
             Punkcikowo
           </span>
-          <span className="sm:hidden font-black bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            P
+          <span className="min-[375px]:hidden font-black bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent text-sm sm:text-base">
+            Punk
           </span>
         </Link>
 
@@ -103,9 +103,11 @@ export function Header() {
                   <span className="hidden sm:inline">{user.points} points</span>
                   <span className="sm:hidden">{user.points}</span>
                 </Badge>
-                <div className="hidden md:flex items-center gap-1 text-xs md:text-sm text-muted-foreground">
-                  <User className="h-3 w-3 md:h-4 md:w-4" />
-                  <span className="max-w-[80px] truncate">{user.username}</span>
+                <div className="flex items-center gap-1 text-xs md:text-sm text-muted-foreground">
+                  <User className="h-3 w-3 md:h-4 md:w-4 shrink-0" />
+                  <span className="max-w-[100px] sm:max-w-[120px] md:max-w-[150px] truncate" title={user.username}>
+                    {user.username}
+                  </span>
                 </div>
                 <Button variant="outline" size="sm" onClick={handleLogout} className="p-2">
                   <LogOut className="h-4 w-4" />

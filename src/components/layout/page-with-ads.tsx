@@ -16,9 +16,9 @@ interface PageWithAdsProps {
 export function PageWithAds({ children, surveyId, showSidebar = true }: PageWithAdsProps) {
   return (
     <div className="w-full">
-      {/* Top Ad - Hidden on mobile, shown on tablet+ */}
-      <div className="hidden md:block mb-4 md:mb-6 w-full flex justify-center items-center" style={{ minHeight: '90px' }}>
-        <div className="w-full max-w-[728px] flex justify-center items-center mx-auto">
+      {/* Top Ad - Mobile optimized banner (320x50) on mobile, full banner (728x90) on tablet+ */}
+      <div className="mb-3 md:mb-4 md:mb-6 w-full flex justify-center items-center">
+        <div className="w-full max-w-[320px] md:max-w-[728px] flex justify-center items-center mx-auto" style={{ minHeight: '50px' }}>
           <AdPlaceholder position="top" surveyId={surveyId} />
         </div>
       </div>
@@ -52,9 +52,9 @@ export function PageWithAds({ children, surveyId, showSidebar = true }: PageWith
         )}
       </div>
 
-      {/* Bottom Ad - Hidden on mobile, shown on tablet+ */}
-      <div className="hidden md:block mt-4 md:mt-6 w-full flex justify-center items-center" style={{ minHeight: '90px' }}>
-        <div className="w-full max-w-[728px] flex justify-center items-center mx-auto">
+      {/* Bottom Ad - Mobile optimized banner (320x50) on mobile, full banner (728x90) on tablet+ */}
+      <div className="mt-3 md:mt-4 md:mt-6 w-full flex justify-center items-center">
+        <div className="w-full max-w-[320px] md:max-w-[728px] flex justify-center items-center mx-auto" style={{ minHeight: '50px' }}>
           <AdPlaceholder position="bottom" surveyId={surveyId} />
         </div>
       </div>

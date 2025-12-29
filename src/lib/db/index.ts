@@ -21,21 +21,45 @@ function toPlainObject<T extends { _id: ObjectId; [key: string]: any }>(doc: T |
   return { ...rest, id: _id.toString() } as Omit<T, '_id'> & { id: string };
 }
 
+// Helper to check if a string is a valid MongoDB ObjectId format
+function isValidObjectId(id: string): boolean {
+  return ObjectId.isValid(id) && id.length === 24 && /^[0-9a-fA-F]{24}$/.test(id);
+}
+
 // Helper to convert string ID to ObjectId
+// Handles both ObjectId format and UUID/string format
 function toObjectId(id: string): ObjectId {
-  try {
-    return new ObjectId(id);
-  } catch {
-    throw new Error(`Invalid ObjectId: ${id}`);
+  if (isValidObjectId(id)) {
+    try {
+      return new ObjectId(id);
+    } catch {
+      throw new Error(`Invalid ObjectId: ${id}`);
+    }
   }
+  // If it's not a valid ObjectId format (e.g., UUID), throw a more descriptive error
+  throw new Error(`ID is not a valid MongoDB ObjectId format: ${id}. Expected 24 hex characters, got ${id.length} characters.`);
 }
 
 // ==================== USERS ====================
 
 export async function getUserById(id: string): Promise<User | null> {
   const db = await connectDB();
-  const user = await db.collection('users').findOne({ _id: toObjectId(id) });
-  return toPlainObject(user) as User | null;
+  
+  // Try ObjectId first if it's a valid format
+  if (isValidObjectId(id)) {
+    const user = await db.collection('users').findOne({ _id: toObjectId(id) });
+    return toPlainObject(user) as User | null;
+  }
+  
+  // If not ObjectId format, try querying by id field (for UUIDs or other string IDs)
+  const user = await db.collection('users').findOne({ id });
+  if (user) {
+    return user as User;
+  }
+  
+  // Also try _id as string (in case UUID was stored as string in _id)
+  const userByStringId = await db.collection('users').findOne({ _id: id });
+  return userByStringId ? { ...userByStringId, id: userByStringId._id.toString() } as User : null;
 }
 
 export async function getUserByEmail(email: string): Promise<User | null> {
@@ -57,12 +81,35 @@ export async function createUser(user: Omit<User, 'id' | 'createdAt' | 'lastRese
 
 export async function updateUser(id: string, updates: Partial<User>): Promise<User | null> {
   const db = await connectDB();
-  const result = await db.collection('users').findOneAndUpdate(
-    { _id: toObjectId(id) },
+  
+  // Try ObjectId first if it's a valid format
+  let result;
+  if (isValidObjectId(id)) {
+    result = await db.collection('users').findOneAndUpdate(
+      { _id: toObjectId(id) },
+      { $set: updates },
+      { returnDocument: 'after' }
+    );
+    return toPlainObject(result) as User | null;
+  }
+  
+  // If not ObjectId format, try updating by id field
+  result = await db.collection('users').findOneAndUpdate(
+    { id },
     { $set: updates },
     { returnDocument: 'after' }
   );
-  return toPlainObject(result) as User | null;
+  if (result) {
+    return result as User;
+  }
+  
+  // Also try _id as string
+  result = await db.collection('users').findOneAndUpdate(
+    { _id: id },
+    { $set: updates },
+    { returnDocument: 'after' }
+  );
+  return result ? { ...result, id: result._id?.toString() || id } as User : null;
 }
 
 // ==================== SURVEYS ====================
@@ -105,9 +152,12 @@ export async function updateSurvey(id: string, updates: Partial<Survey>): Promis
 
 export async function recordSurveyCompletion(completion: UserSurveyCompletion): Promise<void> {
   const db = await connectDB();
+  const userIdValue = isValidObjectId(completion.userId) ? toObjectId(completion.userId) : completion.userId;
+  const surveyIdValue = isValidObjectId(completion.surveyId) ? toObjectId(completion.surveyId) : completion.surveyId;
+  
   await db.collection('usersurveycompletions').insertOne({
-    userId: toObjectId(completion.userId),
-    surveyId: toObjectId(completion.surveyId),
+    userId: userIdValue,
+    surveyId: surveyIdValue,
     completedAt: completion.completedAt,
     responses: completion.responses,
     userData: completion.userData,
@@ -116,8 +166,9 @@ export async function recordSurveyCompletion(completion: UserSurveyCompletion): 
 
 export async function hasUserCompletedSurvey(userId: string, surveyId: string, date: string): Promise<boolean> {
   const db = await connectDB();
+  const userIdValue = isValidObjectId(userId) ? toObjectId(userId) : userId;
   const limit = await db.collection('dailylimits').findOne({
-    userId: toObjectId(userId),
+    userId: userIdValue,
     date,
   });
   return limit?.surveysCompleted?.includes(surveyId) || false;
@@ -127,14 +178,15 @@ export async function hasUserCompletedSurvey(userId: string, surveyId: string, d
 
 export async function getDailyLimit(userId: string, date: string): Promise<DailyLimit> {
   const db = await connectDB();
+  const userIdValue = isValidObjectId(userId) ? toObjectId(userId) : userId;
   let limit = await db.collection('dailylimits').findOne({
-    userId: toObjectId(userId),
+    userId: userIdValue,
     date,
   });
 
   if (!limit) {
     const newLimit = {
-      userId: toObjectId(userId),
+      userId: userIdValue,
       date,
       surveysCompleted: [],
       videoAdsWatched: 0,
@@ -149,7 +201,7 @@ export async function getDailyLimit(userId: string, date: string): Promise<Daily
   }
 
   return {
-    userId: limit.userId.toString(),
+    userId: typeof limit.userId === 'object' ? limit.userId.toString() : limit.userId || userId,
     date: limit.date,
     surveysCompleted: limit.surveysCompleted || [],
     videoAdsWatched: limit.videoAdsWatched || 0,
@@ -158,16 +210,16 @@ export async function getDailyLimit(userId: string, date: string): Promise<Daily
 
 export async function updateDailyLimit(userId: string, date: string, updates: Partial<DailyLimit>): Promise<DailyLimit> {
   const db = await connectDB();
-  const userIdObj = toObjectId(userId);
+  const userIdValue = isValidObjectId(userId) ? toObjectId(userId) : userId;
   
   let limit = await db.collection('dailylimits').findOne({
-    userId: userIdObj,
+    userId: userIdValue,
     date,
   });
 
   if (!limit) {
     const newLimit = {
-      userId: userIdObj,
+      userId: userIdValue,
       date,
       surveysCompleted: updates.surveysCompleted || [],
       videoAdsWatched: updates.videoAdsWatched ?? 0,
@@ -191,13 +243,13 @@ export async function updateDailyLimit(userId: string, date: string, updates: Pa
 
   if (Object.keys(updateDoc).length > 0) {
     await db.collection('dailylimits').updateOne(
-      { userId: userIdObj, date },
+      { userId: userIdValue, date },
       updateDoc
     );
   }
 
   const updated = await db.collection('dailylimits').findOne({
-    userId: userIdObj,
+    userId: userIdValue,
     date,
   });
 
@@ -257,9 +309,12 @@ export async function createShortener(shortener: Omit<LinkShortener, 'id'>): Pro
 
 export async function logAnalyticsEvent(event: Omit<AnalyticsEvent, 'id' | 'timestamp'>): Promise<void> {
   const db = await connectDB();
+  const userIdValue = event.userId 
+    ? (isValidObjectId(event.userId) ? toObjectId(event.userId) : event.userId)
+    : undefined;
   await db.collection('analyticsevents').insertOne({
     ...event,
-    userId: event.userId ? toObjectId(event.userId) : undefined,
+    userId: userIdValue,
     timestamp: new Date().toISOString(),
   });
 }
@@ -275,7 +330,11 @@ export async function getAnalyticsEvents(filters?: {
   
   if (filters) {
     if (filters.type) query.type = filters.type;
-    if (filters.userId) query.userId = toObjectId(filters.userId);
+    if (filters.userId) {
+      query.userId = isValidObjectId(filters.userId) 
+        ? toObjectId(filters.userId) 
+        : filters.userId;
+    }
     if (filters.startDate || filters.endDate) {
       query.timestamp = {};
       if (filters.startDate) query.timestamp.$gte = filters.startDate;
@@ -291,14 +350,15 @@ export async function getAnalyticsEvents(filters?: {
 
 export async function getVideoAdReward(userId: string, date: string): Promise<VideoAdReward> {
   const db = await connectDB();
+  const userIdValue = isValidObjectId(userId) ? toObjectId(userId) : userId;
   let reward = await db.collection('videoadrewards').findOne({
-    userId: toObjectId(userId),
+    userId: userIdValue,
     date,
   });
 
   if (!reward) {
     const newReward = {
-      userId: toObjectId(userId),
+      userId: userIdValue,
       date,
       count: 0,
     };
@@ -311,7 +371,7 @@ export async function getVideoAdReward(userId: string, date: string): Promise<Vi
   }
 
   return {
-    userId: reward.userId.toString(),
+    userId: typeof reward.userId === 'object' ? reward.userId.toString() : reward.userId || userId,
     date: reward.date,
     count: reward.count || 0,
   };
@@ -319,10 +379,10 @@ export async function getVideoAdReward(userId: string, date: string): Promise<Vi
 
 export async function incrementVideoAdReward(userId: string, date: string): Promise<VideoAdReward> {
   const db = await connectDB();
-  const userIdObj = toObjectId(userId);
+  const userIdValue = isValidObjectId(userId) ? toObjectId(userId) : userId;
   
   const result = await db.collection('videoadrewards').findOneAndUpdate(
-    { userId: userIdObj, date },
+    { userId: userIdValue, date },
     { $inc: { count: 1 } },
     { upsert: true, returnDocument: 'after' }
   );

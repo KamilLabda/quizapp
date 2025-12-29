@@ -42,14 +42,14 @@ export default async function SurveysPage() {
         </div>
 
         {/* Offerwall Surveys Section */}
-        <div className="mb-8">
+        <div className="mb-6 md:mb-8">
           <OfferwallSurvey userId={currentUser?.userId} />
         </div>
 
-        {/* Regular Surveys Section */}
-        {surveys.length > 0 && (
-          <div>
-            <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">Available Surveys</h2>
+        {/* Regular Surveys Section - Always visible */}
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">Available Surveys</h2>
+          {surveys.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {surveysWithStatus.map((survey) => (
                 <SurveyCard
@@ -63,8 +63,12 @@ export default async function SurveysPage() {
                 />
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>No surveys available at the moment. Check back later!</p>
+            </div>
+          )}
+        </div>
       </div>
     </PageWithAds>
   );

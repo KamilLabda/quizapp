@@ -169,9 +169,16 @@ export function AdBanner({ position, className = '', surveyId }: AdBannerProps) 
   const isSidebar = position === 'sidebar' || position === 'sidebar-left' || position === 'sidebar-right';
   const isInterstitial = position === 'interstitial';
   const isResultPage = position === 'result-page';
+  const isTopOrBottom = position === 'top' || position === 'bottom';
   
-  const adWidth = isResultPage ? 300 : (isInterstitial ? 728 : (isSidebar ? 300 : 728));
-  const adHeight = isResultPage ? 300 : (isInterstitial ? 400 : (isSidebar ? 250 : 90));
+  // Mobile-optimized dimensions: 320x50 for mobile, 728x90 for desktop
+  // For top/bottom ads, use responsive sizing
+  const adWidth = isResultPage ? 300 : (isInterstitial ? 728 : (isSidebar ? 300 : (isTopOrBottom ? 728 : 728)));
+  const adHeight = isResultPage ? 300 : (isInterstitial ? 400 : (isSidebar ? 250 : (isTopOrBottom ? 90 : 90)));
+  
+  // Mobile dimensions for top/bottom ads
+  const mobileAdWidth = 320;
+  const mobileAdHeight = 50;
   
   // Create stable key to prevent re-renders
   const adKey = useMemo(() => `${position}-${surveyId || 'default'}-${ad.id}`, [position, surveyId, ad.id]);
@@ -190,8 +197,8 @@ export function AdBanner({ position, className = '', surveyId }: AdBannerProps) 
       style={{ 
         width: isResultPage ? '100%' : (isSidebar ? '300px' : '100%'), 
         height: isResultPage ? '100%' : 'auto',
-        maxWidth: isResultPage ? '100%' : (isSidebar ? '300px' : '100%'),
-        minHeight: `${adHeight}px`
+        maxWidth: isResultPage ? '100%' : (isSidebar ? '300px' : (isTopOrBottom ? '100%' : '100%')),
+        minHeight: isTopOrBottom ? `${mobileAdHeight}px` : `${adHeight}px`
       }}
     >
       <a
@@ -212,22 +219,23 @@ export function AdBanner({ position, className = '', surveyId }: AdBannerProps) 
         }}
       >
         <div 
-          className={`relative bg-white border border-border rounded-lg overflow-hidden shadow-sm ${isResultPage ? 'w-full h-full' : (isSidebar ? 'w-full' : '')}`}
+          className={`relative bg-white border border-border rounded-lg overflow-hidden shadow-sm ${isResultPage ? 'w-full h-full' : (isSidebar ? 'w-full' : '')} ${isTopOrBottom ? 'w-full' : ''}`}
           style={{ 
-            width: isResultPage ? '100%' : (isSidebar ? '100%' : `${adWidth}px`), 
-            height: isResultPage ? '100%' : `${adHeight}px`,
-            minWidth: isResultPage ? '100%' : (isSidebar ? '100%' : `${adWidth}px`),
-            minHeight: `${adHeight}px`,
+            width: isResultPage ? '100%' : (isSidebar ? '100%' : (isTopOrBottom ? '100%' : `${adWidth}px`)), 
+            height: isResultPage ? '100%' : (isTopOrBottom ? `${mobileAdHeight}px` : `${adHeight}px`),
+            minWidth: isResultPage ? '100%' : (isSidebar ? '100%' : (isTopOrBottom ? `${mobileAdWidth}px` : `${adWidth}px`)),
+            maxWidth: isResultPage ? '100%' : (isSidebar ? '300px' : (isTopOrBottom ? '728px' : `${adWidth}px`)),
+            minHeight: isTopOrBottom ? `${mobileAdHeight}px` : `${adHeight}px`,
             background: `linear-gradient(135deg, ${getGradientColor(ad.id).from} 0%, ${getGradientColor(ad.id).to} 100%)`
           }}
         >
           {/* CSS-based ad content - no image loading issues */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-white">
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-2 md:p-4 text-white">
             <div className="text-center">
-              <div className={`mb-2 ${isResultPage ? 'text-4xl' : (isSidebar ? 'text-xl' : 'text-3xl')}`}>{getAdEmoji(ad.id)}</div>
-              <div className={`font-bold mb-1 ${isResultPage ? 'text-xl' : (isSidebar ? 'text-sm' : 'text-lg')}`}>{ad.title}</div>
+              <div className={`mb-1 md:mb-2 ${isResultPage ? 'text-4xl' : (isSidebar ? 'text-xl' : (isTopOrBottom ? 'text-lg md:text-3xl' : 'text-3xl'))}`}>{getAdEmoji(ad.id)}</div>
+              <div className={`font-bold mb-0.5 md:mb-1 ${isResultPage ? 'text-xl' : (isSidebar ? 'text-sm' : (isTopOrBottom ? 'text-xs md:text-lg' : 'text-lg'))}`}>{ad.title}</div>
               {ad.description && (
-                <div className={`opacity-90 ${isResultPage ? 'text-base' : (isSidebar ? 'text-xs' : 'text-sm')}`}>{ad.description}</div>
+                <div className={`opacity-90 ${isResultPage ? 'text-base' : (isSidebar ? 'text-xs' : (isTopOrBottom ? 'text-[10px] md:text-sm' : 'text-sm'))}`}>{ad.description}</div>
               )}
             </div>
           </div>
