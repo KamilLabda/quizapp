@@ -54,12 +54,19 @@ export async function getUserById(id: string): Promise<User | null> {
   // If not ObjectId format, try querying by id field (for UUIDs or other string IDs)
   const user = await db.collection('users').findOne({ id });
   if (user) {
-    return user as User;
+    // Convert MongoDB document to User type
+    const { _id, ...rest } = user as any;
+    return { ...rest, id: rest.id || _id?.toString() || id } as User;
   }
   
   // Also try _id as string (in case UUID was stored as string in _id)
-  const userByStringId = await db.collection('users').findOne({ _id: id });
-  return userByStringId ? { ...userByStringId, id: userByStringId._id.toString() } as User : null;
+  const userByStringId = await db.collection('users').findOne({ _id: id as any });
+  if (userByStringId) {
+    const { _id: docId, ...rest } = userByStringId as any;
+    return { ...rest, id: docId?.toString() || id } as User;
+  }
+  
+  return null;
 }
 
 export async function getUserByEmail(email: string): Promise<User | null> {
@@ -100,16 +107,22 @@ export async function updateUser(id: string, updates: Partial<User>): Promise<Us
     { returnDocument: 'after' }
   );
   if (result) {
-    return result as User;
+    const { _id, ...rest } = result as any;
+    return { ...rest, id: rest.id || _id?.toString() || id } as User;
   }
   
   // Also try _id as string
   result = await db.collection('users').findOneAndUpdate(
-    { _id: id },
+    { _id: id as any },
     { $set: updates },
     { returnDocument: 'after' }
   );
-  return result ? { ...result, id: result._id?.toString() || id } as User : null;
+  if (result) {
+    const { _id: docId, ...rest } = result as any;
+    return { ...rest, id: docId?.toString() || id } as User;
+  }
+  
+  return null;
 }
 
 // ==================== SURVEYS ====================
