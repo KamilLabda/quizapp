@@ -1,55 +1,41 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { AdPosition } from '@/types';
-import { AdBanner } from './ad-banner';
 
 interface AdPlaceholderProps {
   position: AdPosition;
   type?: string;
   className?: string;
-  surveyId?: string; // Survey ID for dynamic ad rotation
+  surveyId?: string;
 }
 
-export function AdPlaceholder({ position, type, className = '', surveyId }: AdPlaceholderProps) {
-  const [adCode, setAdCode] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+/**
+ * Ad Placeholder Component
+ * RollerAds scripts are loaded globally in layout.tsx
+ * This component provides containers for ads to be injected
+ */
+export function AdPlaceholder({ position, className = '' }: AdPlaceholderProps) {
+  const isSidebar = position === 'sidebar' || position === 'sidebar-left' || position === 'sidebar-right';
+  const isInterstitial = position === 'interstitial';
+  const isTopOrBottom = position === 'top' || position === 'bottom';
 
-  useEffect(() => {
-    // Fetch ad for this position from API
-    const params = new URLSearchParams({ position });
-    if (type) params.append('type', type);
-    if (surveyId) params.append('surveyId', surveyId);
-    
-    fetch(`/api/ads?${params.toString()}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.adCode) {
-          setAdCode(data.adCode);
-        }
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
-  }, [position, type, surveyId]);
+  // Determine container dimensions based on position
+  const containerStyle: React.CSSProperties = {
+    minHeight: isInterstitial ? '400px' : isSidebar ? '250px' : '90px',
+    width: '100%',
+  };
 
-  // Show loading state briefly
-  if (loading) {
-    return <div className={`${className} min-h-[50px] md:min-h-[90px]`} />;
-  }
+  // Create unique ID for this ad position
+  const adId = `rollerads-${position}`;
 
-  // Render real ad code from RollerAds
-  if (adCode) {
-    return (
-      <div
-        className={className}
-        dangerouslySetInnerHTML={{ __html: adCode }}
-      />
-    );
-  }
-
-  // Fallback to AdBanner if no ad code
-  return <AdBanner position={position} className={className} surveyId={surveyId} />;
+  return (
+    <div
+      id={adId}
+      className={className}
+      style={containerStyle}
+      data-ad-position={position}
+      data-rollerads="true"
+    />
+  );
 }
 

@@ -12,49 +12,64 @@ interface PageWithAdsProps {
 /**
  * Layout component that wraps content with ads on all sides
  * Professional layout with sidebar ads that don't interfere with UX
+ * Improved spacing and responsive design for better ad placement
  */
 export function PageWithAds({ children, surveyId, showSidebar = true }: PageWithAdsProps) {
   return (
     <div className="w-full">
-      {/* Top Ad - Mobile optimized banner (320x50) on mobile, full banner (728x90) on tablet+ */}
-      <div className="mb-3 md:mb-4 md:mb-6 w-full flex justify-center items-center">
-        <div className="w-full max-w-[320px] md:max-w-[728px] flex justify-center items-center mx-auto" style={{ minHeight: '50px' }}>
+      {/* Top Ad - Centered with proper spacing */}
+      <div className="mb-6 md:mb-8 w-full flex justify-center">
+        <div className="w-full max-w-[320px] md:max-w-[728px] lg:max-w-[970px]">
           <AdPlaceholder position="top" surveyId={surveyId} />
         </div>
       </div>
 
-      <div className="flex gap-4 md:gap-6 items-start w-full">
-        {/* Left Sidebar Ad - Only on large desktop screens (xl+) */}
+      <div className="flex gap-6 lg:gap-8 w-full items-start">
+        {/* Left Sidebar Ad - Proper sticky positioning */}
         {showSidebar && (
-          <aside className="hidden xl:block w-[300px] shrink-0 sticky top-20">
-            <div className="space-y-4">
+          <aside className="hidden lg:flex w-[250px] xl:w-[300px] shrink-0 flex-col">
+            <div 
+              className="space-y-6"
+              style={{ 
+                position: 'sticky',
+                top: '5rem',
+                alignSelf: 'flex-start'
+              }}
+            >
               <AdPlaceholder position="sidebar-left" surveyId={surveyId} />
-              {/* Second sidebar ad below */}
               <AdPlaceholder position="sidebar-left" surveyId={surveyId ? `${surveyId}-2` : undefined} />
             </div>
           </aside>
         )}
 
-        {/* Main Content */}
-        <div className="flex-1 min-w-0 w-full">
-          {children}
+        {/* Main Content - Better spacing */}
+        <div className="flex-1 min-w-0 w-full px-2 md:px-0">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </div>
 
-        {/* Right Sidebar Ad - Only on large desktop screens (xl+) */}
+        {/* Right Sidebar Ad - Proper sticky positioning */}
         {showSidebar && (
-          <aside className="hidden xl:block w-[300px] shrink-0 sticky top-20">
-            <div className="space-y-4">
+          <aside className="hidden lg:flex w-[250px] xl:w-[300px] shrink-0 flex-col">
+            <div 
+              className="space-y-6"
+              style={{ 
+                position: 'sticky',
+                top: '5rem',
+                alignSelf: 'flex-start'
+              }}
+            >
               <AdPlaceholder position="sidebar-right" surveyId={surveyId} />
-              {/* Second sidebar ad below */}
               <AdPlaceholder position="sidebar-right" surveyId={surveyId ? `${surveyId}-3` : undefined} />
             </div>
           </aside>
         )}
       </div>
 
-      {/* Bottom Ad - Mobile optimized banner (320x50) on mobile, full banner (728x90) on tablet+ */}
-      <div className="mt-3 md:mt-4 md:mt-6 w-full flex justify-center items-center">
-        <div className="w-full max-w-[320px] md:max-w-[728px] flex justify-center items-center mx-auto" style={{ minHeight: '50px' }}>
+      {/* Bottom Ad - Centered with proper spacing */}
+      <div className="mt-8 md:mt-12 w-full flex justify-center">
+        <div className="w-full max-w-[320px] md:max-w-[728px] lg:max-w-[970px]">
           <AdPlaceholder position="bottom" surveyId={surveyId} />
         </div>
       </div>

@@ -18,16 +18,6 @@ const ROLLERADS_CODES: Record<AdType, string> = {
   sticky: '<script>(function(ax){var d = document,s = d.createElement(\'script\'),l = d.scripts[d.scripts.length - 1];s.settings = ax || {};s.src = "//mushyyoung.com/bHXBVhs.d/GElf0_YRWVcv/-eAmk9FuSZlUKlMkePaTcY/3cMwz/ki1OOITnc/tAN_jhcZzUO/TkUJ5vOmAI";s.async = true;s.referrerPolicy = \'no-referrer-when-downgrade\';l.parentNode.insertBefore(s, l);})({})</script>',
 };
 
-/**
- * Real ad codes - RollerAds integration
- */
-const REAL_AD_CODES: Record<AdNetwork, Partial<Record<AdType, string>>> = {
-  rollerads: ROLLERADS_CODES,
-  adsterra: {},
-  propellerads: {},
-  admaven: {},
-  dummy: {},
-};
 
 /**
  * Simple hash function for consistent rotation based on quiz ID
@@ -172,15 +162,15 @@ function getRealisticDummyAd(position: AdPosition, surveyId?: string): string {
 }
 
 /**
- * Get ad code for a specific position with quiz-based rotation
- * Now using real RollerAds codes
+ * Get ad code for a specific position
+ * RollerAds scripts handle ad placement automatically
  */
 export async function getAdForPosition(
-  position: AdPosition, 
+  position: AdPosition,
   type?: AdType,
   surveyId?: string
 ): Promise<string | null> {
-  // Return RollerAds code for all positions
+  // Return RollerAds code for the position
   return getRollerAdsCode(position);
 }
 

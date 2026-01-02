@@ -77,12 +77,7 @@ export function FloatingAd({ position = 'bottom-right', delay = 2000 }: Floating
 
         {/* Ad content */}
         <div className="p-2">
-          <div className="text-xs text-muted-foreground text-center mb-1 font-medium">
-            Advertisement
-          </div>
-          <div className="rounded overflow-hidden">
-            <AdPlaceholder position="sidebar" surveyId="landing-page" />
-          </div>
+          <AdPlaceholder position="sidebar" surveyId="landing-page" />
         </div>
       </div>
     </div>

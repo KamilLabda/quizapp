@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, CheckCircle2, Clock } from 'lucide-react';
 import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+import { InterstitialAd } from '@/components/ads/interstitial-ad';
 import { addGuestCompletion, hasGuestCompletions, getGuestTotalPoints } from '@/lib/guest-session';
 import { LoginPrompt } from '@/components/auth/login-prompt';
 
@@ -48,6 +49,8 @@ export function SurveyPlayerClient({ surveyId }: { surveyId: string }) {
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [pointsEarned, setPointsEarned] = useState(0);
+  const [showInterstitialAd, setShowInterstitialAd] = useState(false);
+  const [shouldShowLoginPrompt, setShouldShowLoginPrompt] = useState(false);
 
   useEffect(() => {
     fetchSurvey();
@@ -187,22 +190,13 @@ export function SurveyPlayerClient({ surveyId }: { surveyId: string }) {
         addGuestCompletion(data.guestCompletion);
         setPointsEarned(data.pointsEarned);
         
-        // Show login prompt after first survey
-        setSuccess(true);
-        if (wasFirstSurvey) {
-          setShowLoginPrompt(true);
-        } else {
-          setTimeout(() => {
-            router.push('/surveys');
-          }, 2000);
-        }
-      } else {
-        // Authenticated user - success
-        setSuccess(true);
-        setTimeout(() => {
-          router.push('/surveys');
-        }, 2000);
+        // Mark that we should show login prompt after ad closes
+        setShouldShowLoginPrompt(wasFirstSurvey);
       }
+      
+      // Show interstitial ad after successful submission
+      setSuccess(true);
+      setShowInterstitialAd(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit survey');
     } finally {
@@ -221,29 +215,51 @@ export function SurveyPlayerClient({ surveyId }: { surveyId: string }) {
     );
   }
 
+  const handleInterstitialClose = () => {
+    setShowInterstitialAd(false);
+    // After ad closes, show login prompt if needed, otherwise redirect
+    if (shouldShowLoginPrompt) {
+      setShowLoginPrompt(true);
+    } else {
+      setTimeout(() => {
+        router.push('/surveys');
+      }, 500);
+    }
+  };
+
   if (success) {
     return (
       <>
-        <Card className="w-full max-w-3xl mx-auto">
-          <CardContent className="pt-6">
-            <div className="text-center space-y-4">
-              <CheckCircle2 className="h-16 w-16 text-green-600 mx-auto" />
-              <h2 className="text-2xl font-bold">Survey Submitted!</h2>
-              <p className="text-muted-foreground">You earned {survey.points} points!</p>
-            </div>
-          </CardContent>
-        </Card>
-        <LoginPrompt
-          open={showLoginPrompt}
-          onClose={() => {
-            setShowLoginPrompt(false);
-            setTimeout(() => {
-              router.push('/surveys');
-            }, 500);
-          }}
-          pointsEarned={pointsEarned}
-          totalGuestPoints={getGuestTotalPoints()}
-        />
+        {showInterstitialAd && (
+          <InterstitialAd
+            onClose={handleInterstitialClose}
+            surveyId={surveyId}
+          />
+        )}
+        {!showInterstitialAd && (
+          <>
+            <Card className="w-full max-w-3xl mx-auto">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-4">
+                  <CheckCircle2 className="h-16 w-16 text-green-600 mx-auto" />
+                  <h2 className="text-2xl font-bold">Survey Submitted!</h2>
+                  <p className="text-muted-foreground">You earned {survey.points} points!</p>
+                </div>
+              </CardContent>
+            </Card>
+            <LoginPrompt
+              open={showLoginPrompt}
+              onClose={() => {
+                setShowLoginPrompt(false);
+                setTimeout(() => {
+                  router.push('/surveys');
+                }, 500);
+              }}
+              pointsEarned={pointsEarned}
+              totalGuestPoints={getGuestTotalPoints()}
+            />
+          </>
+        )}
       </>
     );
   }
