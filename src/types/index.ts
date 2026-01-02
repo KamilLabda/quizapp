@@ -60,7 +60,7 @@ export interface AdConfig {
   priority: number; // For rotation priority
 }
 
-export type AdNetwork = 'adsterra' | 'propellerads' | 'admaven' | 'dummy';
+export type AdNetwork = 'rollerads' | 'adsterra' | 'propellerads' | 'admaven' | 'dummy';
 export type AdType = 'banner' | 'interstitial' | 'native' | 'sticky' | 'video' | 'pop-under' | 'in-article';
 export type AdPosition = 'top' | 'bottom' | 'sidebar' | 'sidebar-left' | 'sidebar-right' | 'between-questions' | 'result-page' | 'interstitial';
 

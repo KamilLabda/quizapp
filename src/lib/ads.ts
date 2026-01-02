@@ -6,45 +6,27 @@
 import { AdConfig, AdNetwork, AdType, AdPosition } from '@/types';
 
 /**
- * Dummy ad codes - replace these with real ad network codes
+ * RollerAds - Real ad codes from client (Site ID: 2261550)
  */
-const DUMMY_AD_CODES: Record<AdNetwork, Partial<Record<AdType, string>>> = {
-  adsterra: {
-    banner: '<div class="dummy-ad adsterra-banner">Adsterra Banner Ad (Replace with real code)</div>',
-    interstitial: '<div class="dummy-ad adsterra-interstitial">Adsterra Interstitial Ad (Replace with real code)</div>',
-    native: '<div class="dummy-ad adsterra-native">Adsterra Native Ad (Replace with real code)</div>',
-    sticky: '<div class="dummy-ad adsterra-sticky">Adsterra Sticky Ad (Replace with real code)</div>',
-    video: '<div class="dummy-ad adsterra-video">Adsterra Video Ad (Replace with real code)</div>',
-    'pop-under': '<div class="dummy-ad adsterra-popunder">Adsterra Pop-Under Ad (Replace with real code)</div>',
-    'in-article': '<div class="dummy-ad adsterra-inarticle">Adsterra In-Article Ad (Replace with real code)</div>',
-  },
-  propellerads: {
-    banner: '<div class="dummy-ad propellerads-banner">PropellerAds Banner Ad (Replace with real code)</div>',
-    interstitial: '<div class="dummy-ad propellerads-interstitial">PropellerAds Interstitial Ad (Replace with real code)</div>',
-    native: '<div class="dummy-ad propellerads-native">PropellerAds Native Ad (Replace with real code)</div>',
-    sticky: '<div class="dummy-ad propellerads-sticky">PropellerAds Sticky Ad (Replace with real code)</div>',
-    video: '<div class="dummy-ad propellerads-video">PropellerAds Video Ad (Replace with real code)</div>',
-    'pop-under': '<div class="dummy-ad propellerads-popunder">PropellerAds Pop-Under Ad (Replace with real code)</div>',
-    'in-article': '<div class="dummy-ad propellerads-inarticle">PropellerAds In-Article Ad (Replace with real code)</div>',
-  },
-  admaven: {
-    banner: '<div class="dummy-ad admaven-banner">AdMaven Banner Ad (Replace with real code)</div>',
-    interstitial: '<div class="dummy-ad admaven-interstitial">AdMaven Interstitial Ad (Replace with real code)</div>',
-    native: '<div class="dummy-ad admaven-native">AdMaven Native Ad (Replace with real code)</div>',
-    sticky: '<div class="dummy-ad admaven-sticky">AdMaven Sticky Ad (Replace with real code)</div>',
-    video: '<div class="dummy-ad admaven-video">AdMaven Video Ad (Replace with real code)</div>',
-    'pop-under': '<div class="dummy-ad admaven-popunder">AdMaven Pop-Under Ad (Replace with real code)</div>',
-    'in-article': '<div class="dummy-ad admaven-inarticle">AdMaven In-Article Ad (Replace with real code)</div>',
-  },
-  dummy: {
-    banner: '<div class="dummy-ad dummy-banner">Dummy Banner Ad</div>',
-    interstitial: '<div class="dummy-ad dummy-interstitial">Dummy Interstitial Ad</div>',
-    native: '<div class="dummy-ad dummy-native">Dummy Native Ad</div>',
-    sticky: '<div class="dummy-ad dummy-sticky">Dummy Sticky Ad</div>',
-    video: '<div class="dummy-ad dummy-video">Dummy Video Ad</div>',
-    'pop-under': '<div class="dummy-ad dummy-popunder">Dummy Pop-Under Ad</div>',
-    'in-article': '<div class="dummy-ad dummy-inarticle">Dummy In-Article Ad</div>',
-  },
+const ROLLERADS_CODES: Record<AdType, string> = {
+  banner: '<script>(function(ax){var d = document,s = d.createElement(\'script\'),l = d.scripts[d.scripts.length - 1];s.settings = ax || {};s.src = "//mushyyoung.com/bHXBVhs.d/GElf0_YRWVcv/-eAmk9FuSZlUKlMkePaTcY/3cMwz/ki1OOITnc/tAN_jhcZzUO/TkUJ5vOmAI";s.async = true;s.referrerPolicy = \'no-referrer-when-downgrade\';l.parentNode.insertBefore(s, l);})({})</script>',
+  'pop-under': '<script>(function(ppjmpsp){var d = document,s = d.createElement(\'script\'),l = d.scripts[d.scripts.length - 1];s.settings = ppjmpsp || {};s.src = "//affectionate-spray.com/c.D/9K6Ybk2/5yl/SkWfQx9ANRjVcqzKODTKYpw/Mdyl0/2/Ngz/M/5mNMjWAM0V";s.async = true;s.referrerPolicy = \'no-referrer-when-downgrade\';l.parentNode.insertBefore(s, l);})({})</script>',
+  'in-article': '<script>(function(vbl){var d = document,s = d.createElement(\'script\'),l = d.scripts[d.scripts.length - 1];s.settings = vbl || {};s.src = "//mushyyoung.com/b.XuVpsmdkGRle0dYiWKcI/qebmP9JuzZcUdlpkVPyTzYJ3PMbzhkZ2RMeDbU/tNNHjRcIzWOAT/Y/wENfg_";s.async = true;s.referrerPolicy = \'no-referrer-when-downgrade\';l.parentNode.insertBefore(s, l);})({})</script>',
+  video: '<script>(function(aljd){var d = document,s = d.createElement(\'script\'),l = d.scripts[d.scripts.length - 1];s.settings = aljd || {};s.src = "//mushyyoung.com/baXkV.sPdtGVll0OYhWgcX/reZmr9/uIZ/Uzlmk/PwTQY/3jMQz/kR2AMBTREEtLN/j/czz/OvTQY/xXM/gG";s.async = true;s.referrerPolicy = \'no-referrer-when-downgrade\';l.parentNode.insertBefore(s, l);})({})</script>',
+  interstitial: '<script>(function(ax){var d = document,s = d.createElement(\'script\'),l = d.scripts[d.scripts.length - 1];s.settings = ax || {};s.src = "//mushyyoung.com/bHXBVhs.d/GElf0_YRWVcv/-eAmk9FuSZlUKlMkePaTcY/3cMwz/ki1OOITnc/tAN_jhcZzUO/TkUJ5vOmAI";s.async = true;s.referrerPolicy = \'no-referrer-when-downgrade\';l.parentNode.insertBefore(s, l);})({})</script>',
+  native: '<script>(function(vbl){var d = document,s = d.createElement(\'script\'),l = d.scripts[d.scripts.length - 1];s.settings = vbl || {};s.src = "//mushyyoung.com/b.XuVpsmdkGRle0dYiWKcI/qebmP9JuzZcUdlpkVPyTzYJ3PMbzhkZ2RMeDbU/tNNHjRcIzWOAT/Y/wENfg_";s.async = true;s.referrerPolicy = \'no-referrer-when-downgrade\';l.parentNode.insertBefore(s, l);})({})</script>',
+  sticky: '<script>(function(ax){var d = document,s = d.createElement(\'script\'),l = d.scripts[d.scripts.length - 1];s.settings = ax || {};s.src = "//mushyyoung.com/bHXBVhs.d/GElf0_YRWVcv/-eAmk9FuSZlUKlMkePaTcY/3cMwz/ki1OOITnc/tAN_jhcZzUO/TkUJ5vOmAI";s.async = true;s.referrerPolicy = \'no-referrer-when-downgrade\';l.parentNode.insertBefore(s, l);})({})</script>',
+};
+
+/**
+ * Real ad codes - RollerAds integration
+ */
+const REAL_AD_CODES: Record<AdNetwork, Partial<Record<AdType, string>>> = {
+  rollerads: ROLLERADS_CODES,
+  adsterra: {},
+  propellerads: {},
+  admaven: {},
+  dummy: {},
 };
 
 /**
@@ -61,7 +43,27 @@ function hashString(str: string): number {
 }
 
 /**
- * Get realistic dummy ad HTML with images
+ * Get RollerAds code based on position
+ */
+function getRollerAdsCode(position: AdPosition): string | null {
+  // Map positions to ad types
+  const positionToType: Record<AdPosition, AdType> = {
+    'top': 'banner',
+    'bottom': 'banner',
+    'sidebar': 'banner',
+    'sidebar-left': 'banner',
+    'sidebar-right': 'banner',
+    'between-questions': 'in-article',
+    'result-page': 'banner',
+    'interstitial': 'interstitial',
+  };
+
+  const adType = positionToType[position];
+  return ROLLERADS_CODES[adType] || ROLLERADS_CODES.banner;
+}
+
+/**
+ * Get realistic dummy ad HTML with images (fallback only)
  * These look like real ads but are placeholders
  */
 function getRealisticDummyAd(position: AdPosition, surveyId?: string): string {
@@ -171,42 +173,15 @@ function getRealisticDummyAd(position: AdPosition, surveyId?: string): string {
 
 /**
  * Get ad code for a specific position with quiz-based rotation
- * Different quizzes will show different ads for better monetization
+ * Now using real RollerAds codes
  */
 export async function getAdForPosition(
   position: AdPosition, 
   type?: AdType,
   surveyId?: string
 ): Promise<string | null> {
-  // Lazy import to prevent client-side bundling
-  const { getActiveAdConfigs } = await import('./db');
-  const configs = await getActiveAdConfigs(type, position);
-  
-  if (configs.length === 0) {
-    // Return realistic dummy ad with images if no configs found
-    return getRealisticDummyAd(position, surveyId);
-  }
-
-  // Survey-based rotation: use surveyId to consistently select an ad network
-  // This ensures the same survey always shows the same ad (better for tracking)
-  let selectedConfig: typeof configs[0];
-  
-  if (surveyId && configs.length > 1) {
-    // Use survey ID to hash and select a consistent ad network
-    const index = hashString(surveyId) % configs.length;
-    selectedConfig = configs[index];
-  } else {
-    // Fallback to highest priority ad
-    selectedConfig = configs[0];
-  }
-  
-  // If the config has a custom code, use it; otherwise use dummy
-  if (selectedConfig.code && selectedConfig.code !== '') {
-    return selectedConfig.code;
-  }
-
-  // Fallback to realistic dummy ad with images
-  return getRealisticDummyAd(position, surveyId);
+  // Return RollerAds code for all positions
+  return getRollerAdsCode(position);
 }
 
 /**
