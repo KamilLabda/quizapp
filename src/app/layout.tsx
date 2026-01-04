@@ -35,34 +35,45 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* RollerAds Banner Script */}
+        {/* 
+          ROLLERADS SCRIPTS DISABLED - ADULT CONTENT ISSUE
+          
+          RollerAds scripts have been disabled because they are serving adult content ads.
+          Adult ads cannot be filtered through code - this must be configured in RollerAds dashboard.
+          
+          To re-enable RollerAds with family-safe ads:
+          1. Contact RollerAds support (Site ID: 2261550)
+          2. Request family-safe/SFW ad filtering in your account settings
+          3. Once confirmed, uncomment the scripts below
+          
+          See ADULT_ADS_NOTICE.md for detailed instructions.
+        */}
+        {/* 
         <Script
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(ax){var d = document,s = d.createElement('script'),l = d.scripts[d.scripts.length - 1];s.settings = ax || {};s.src = "//mushyyoung.com/bHXBVhs.d/GElf0_YRWVcv/-eAmk9FuSZlUKlMkePaTcY/3cMwz/ki1OOITnc/tAN_jhcZzUO/TkUJ5vOmAI";s.async = true;s.referrerPolicy = 'no-referrer-when-downgrade';l.parentNode.insertBefore(s, l);})({})`
           }}
         />
-        {/* RollerAds PopUnder Script */}
         <Script
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(ppjmpsp){var d = document,s = d.createElement('script'),l = d.scripts[d.scripts.length - 1];s.settings = ppjmpsp || {};s.src = "//affectionate-spray.com/c.D/9K6Ybk2/5yl/SkWfQx9ANRjVcqzKODTKYpw/Mdyl0/2/Ngz/M/5mNMjWAM0V";s.async = true;s.referrerPolicy = 'no-referrer-when-downgrade';l.parentNode.insertBefore(s, l);})({})`
           }}
         />
-        {/* RollerAds InPagePush Script */}
         <Script
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(vbl){var d = document,s = d.createElement('script'),l = d.scripts[d.scripts.length - 1];s.settings = vbl || {};s.src = "//mushyyoung.com/b.XuVpsmdkGRle0dYiWKcI/qebmP9JuzZcUdlpkVPyTzYJ3PMbzhkZ2RMeDbU/tNNHjRcIzWOAT/Y/wENfg_";s.async = true;s.referrerPolicy = 'no-referrer-when-downgrade';l.parentNode.insertBefore(s, l);})({})`
           }}
         />
-        {/* RollerAds Video Slider Script */}
         <Script
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(aljd){var d = document,s = d.createElement('script'),l = d.scripts[d.scripts.length - 1];s.settings = aljd || {};s.src = "//mushyyoung.com/baXkV.sPdtGVll0OYhWgcX/reZmr9/uIZ/Uzlmk/PwTQY/3jMQz/kR2AMBTREEtLN/j/czz/OvTQY/xXM/gG";s.async = true;s.referrerPolicy = 'no-referrer-when-downgrade';l.parentNode.insertBefore(s, l);})({})`
           }}
         />
+        */}
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
