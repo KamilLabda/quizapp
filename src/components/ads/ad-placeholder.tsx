@@ -11,13 +11,20 @@ interface AdPlaceholderProps {
 
 /**
  * Ad Placeholder Component
- * RollerAds scripts are loaded globally in layout.tsx
- * This component provides containers for ads to be injected
+ * 
+ * CURRENTLY DISABLED: RollerAds scripts are disabled due to adult content.
+ * This component returns null until family-safe ads are configured.
+ * 
+ * To re-enable: See ADULT_ADS_NOTICE.md for instructions.
  */
 export function AdPlaceholder({ position, className = '' }: AdPlaceholderProps) {
+  // Ads are currently disabled - return nothing
+  // Uncomment the code below when family-safe ads are configured
+  return null;
+
+  /*
   const isSidebar = position === 'sidebar' || position === 'sidebar-left' || position === 'sidebar-right';
   const isInterstitial = position === 'interstitial';
-  const isTopOrBottom = position === 'top' || position === 'bottom';
 
   // Determine container dimensions based on position
   const containerStyle: React.CSSProperties = {
@@ -37,5 +44,5 @@ export function AdPlaceholder({ position, className = '' }: AdPlaceholderProps) 
       data-rollerads="true"
     />
   );
+  */
 }
-

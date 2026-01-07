@@ -1,54 +1,82 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, ExternalLink } from 'lucide-react';
+import { Loader2, ChevronLeft } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+interface SurveyProvider {
+  id: string;
+  name: string;
+  logo?: string;
+  description: string;
+  color: string;
+}
 
 interface OfferwallSurveyProps {
   userId?: string;
   onComplete?: (points: number) => void;
 }
 
-/**
- * Offerwall survey integration component
- * Supports multiple Offerwall providers via iframe
- * 
- * Common providers:
- * - AdGate Media
- * - AdscendMedia
- * - OfferToro
- * - Lootably
- * - CPX Research
- * - AdGem
- */
+// Survey providers configuration - easy to add more
+const SURVEY_PROVIDERS: SurveyProvider[] = [
+  {
+    id: 'cpx-research',
+    name: 'CPX Research',
+    description: 'Premium market research surveys',
+    color: 'from-blue-500 to-blue-600',
+  },
+  {
+    id: 'offertoro',
+    name: 'OfferToro',
+    description: 'Quick surveys & offers',
+    color: 'from-green-500 to-green-600',
+  },
+  {
+    id: 'adgate',
+    name: 'AdGate Media',
+    description: 'Verified survey rewards',
+    color: 'from-purple-500 to-purple-600',
+  },
+  {
+    id: 'lootably',
+    name: 'Lootably',
+    description: 'Gaming & lifestyle surveys',
+    color: 'from-orange-500 to-orange-600',
+  },
+  {
+    id: 'adgem',
+    name: 'AdGem',
+    description: 'High-paying survey offers',
+    color: 'from-pink-500 to-pink-600',
+  },
+];
+
 export function OfferwallSurvey({ userId, onComplete }: OfferwallSurveyProps) {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [offerwallUrl, setOfferwallUrl] = useState<string | null>(null);
+  const [activeProvider, setActiveProvider] = useState<string | null>(null);
+  const [providerUrl, setProviderUrl] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Fetch Offerwall URL from API
-    // This will be configured with your Offerwall provider credentials
-    fetchOfferwallUrl();
-  }, [userId]);
-
-  const fetchOfferwallUrl = async () => {
+  const fetchProviderUrl = async (providerId: string) => {
     try {
       setIsLoading(true);
+      setError(null);
       const response = await fetch('/api/offerwall/url', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ userId, provider: providerId }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to load Offerwall');
+        throw new Error('Failed to load surveys');
       }
 
       const data = await response.json();
-      setOfferwallUrl(data.url);
+      setProviderUrl(data.url);
+      setActiveProvider(providerId);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load surveys');
     } finally {
@@ -56,13 +84,10 @@ export function OfferwallSurvey({ userId, onComplete }: OfferwallSurveyProps) {
     }
   };
 
-  // Listen for postMessage from Offerwall iframe
+  // Listen for postMessage from provider iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // Verify origin for security (update with your Offerwall domain)
-      // if (event.origin !== 'https://your-offerwall-domain.com') return;
-
-      if (event.data.type === 'offerwall_complete') {
+      if (event.data.type === 'offerwall_complete' || event.data.type === 'survey_complete') {
         const points = event.data.points || 0;
         if (onComplete && points > 0) {
           onComplete(points);
@@ -74,12 +99,47 @@ export function OfferwallSurvey({ userId, onComplete }: OfferwallSurveyProps) {
     return () => window.removeEventListener('message', handleMessage);
   }, [onComplete]);
 
+  const handleBack = () => {
+    setActiveProvider(null);
+    setProviderUrl(null);
+    setError(null);
+  };
+
+  // Show provider iframe
+  if (activeProvider && providerUrl) {
+    const provider = SURVEY_PROVIDERS.find(p => p.id === activeProvider);
+    
+    return (
+      <div className="w-full" style={{ height: 'calc(100vh - 180px)', minHeight: '600px' }}>
+        <div className="flex items-center gap-3 mb-4">
+          <Button variant="outline" size="sm" onClick={handleBack}>
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to Providers
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Currently viewing: <strong>{provider?.name}</strong>
+          </span>
+        </div>
+        <div className="w-full h-full rounded-lg overflow-hidden border shadow-sm">
+          <iframe
+            src={providerUrl}
+            className="w-full h-full border-0"
+            title={`${provider?.name} Surveys`}
+            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation"
+            allow="fullscreen"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="flex items-center justify-center min-h-[400px]">
+        <CardContent className="flex items-center justify-center py-16">
           <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
             <p className="text-muted-foreground">Loading surveys...</p>
           </div>
         </CardContent>
@@ -87,72 +147,61 @@ export function OfferwallSurvey({ userId, onComplete }: OfferwallSurveyProps) {
     );
   }
 
+  // Show error state
   if (error) {
     return (
       <Card>
-        <CardContent>
+        <CardContent className="py-6">
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
-          <Button variant="default" onClick={fetchOfferwallUrl} className="mt-4">
-            Retry
+          <Button variant="default" onClick={() => setError(null)} className="mt-4">
+            Try Again
           </Button>
         </CardContent>
       </Card>
     );
   }
 
-  if (!offerwallUrl) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Surveys & Offers</CardTitle>
-          <CardDescription>
-            Complete surveys and offers to earn extra points
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Alert>
-            <AlertDescription>
-              Offerwall is not configured. Please add your Offerwall provider credentials in the admin panel.
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
-    );
-  }
-
+  // Show provider selection
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-3">
-        <CardTitle>Surveys & Offers</CardTitle>
-        <CardDescription>
-          Complete surveys and offers to earn extra points. Click on any offer to get started.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="relative w-full" style={{ height: 'calc(100vh - 300px)', minHeight: '600px', maxHeight: '800px' }}>
-          <iframe
-            src={offerwallUrl}
-            className="w-full h-full border-0 block"
-            style={{ 
-              width: '100%', 
-              height: '100%',
-              display: 'block',
-              border: 'none',
-              overflow: 'auto'
-            }}
-            title="Offerwall Surveys"
-            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation"
-            allow="fullscreen"
-          />
-        </div>
-        <div className="px-3 md:px-6 py-3 text-xs md:text-sm text-muted-foreground flex items-center gap-2 justify-center border-t">
-          <ExternalLink className="h-3 w-3 md:h-4 md:w-4" />
-          <span>Surveys are provided by our partner Offerwall network</span>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      {/* Provider Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        {SURVEY_PROVIDERS.map((provider) => (
+          <Card 
+            key={provider.id}
+            className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+            onClick={() => fetchProviderUrl(provider.id)}
+          >
+            <div className={`h-2 bg-gradient-to-r ${provider.color}`} />
+            <CardContent className="p-4">
+              <div className="space-y-2">
+                <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                  {provider.name}
+                </h3>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {provider.description}
+                </p>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full mt-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+              >
+                View Surveys
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Info Section */}
+      <div className="bg-muted/50 rounded-lg p-4 text-center">
+        <p className="text-sm text-muted-foreground">
+          Select any category above to explore available surveys and start earning points.
+        </p>
+      </div>
+    </div>
   );
 }
-

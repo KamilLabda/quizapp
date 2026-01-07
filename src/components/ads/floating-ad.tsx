@@ -1,21 +1,33 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { AdPlaceholder } from './ad-placeholder';
-
 interface FloatingAdProps {
   position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
-  delay?: number; // Delay before showing (ms)
+  delay?: number;
 }
 
+/**
+ * Floating Ad Component
+ * 
+ * CURRENTLY DISABLED: RollerAds scripts are disabled due to adult content.
+ * This component returns null until family-safe ads are configured.
+ * 
+ * To re-enable: See ADULT_ADS_NOTICE.md for instructions.
+ */
 export function FloatingAd({ position = 'bottom-right', delay = 2000 }: FloatingAdProps) {
+  // Ads are currently disabled - return nothing
+  return null;
+
+  /*
+  // Original implementation - uncomment when ads are re-enabled
+  import { useState, useEffect } from 'react';
+  import { X } from 'lucide-react';
+  import { Button } from '@/components/ui/button';
+  import { AdPlaceholder } from './ad-placeholder';
+
   const [isVisible, setIsVisible] = useState(false);
   const [isClosed, setIsClosed] = useState(false);
 
   useEffect(() => {
-    // Only show on desktop screens (md and above)
     const checkScreenSize = () => {
       if (window.innerWidth >= 768) {
         const timer = setTimeout(() => {
@@ -33,13 +45,11 @@ export function FloatingAd({ position = 'bottom-right', delay = 2000 }: Floating
   const handleClose = () => {
     setIsVisible(false);
     setIsClosed(true);
-    // Store in localStorage to remember user preference
     if (typeof window !== 'undefined') {
       localStorage.setItem('floatingAdClosed', 'true');
     }
   };
 
-  // Check if user previously closed the ad
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const wasClosed = localStorage.getItem('floatingAdClosed');
@@ -64,7 +74,6 @@ export function FloatingAd({ position = 'bottom-right', delay = 2000 }: Floating
       style={{ maxWidth: '320px' }}
     >
       <div className="relative bg-background border-2 border-primary/20 rounded-lg shadow-2xl overflow-hidden hover:shadow-primary/20 transition-shadow">
-        {/* Close button */}
         <Button
           variant="ghost"
           size="icon"
@@ -74,13 +83,11 @@ export function FloatingAd({ position = 'bottom-right', delay = 2000 }: Floating
         >
           <X className="h-3 w-3" />
         </Button>
-
-        {/* Ad content */}
         <div className="p-2">
           <AdPlaceholder position="sidebar" surveyId="landing-page" />
         </div>
       </div>
     </div>
   );
+  */
 }
-

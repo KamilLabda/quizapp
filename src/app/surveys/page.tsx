@@ -33,22 +33,35 @@ export default async function SurveysPage() {
 
   return (
     <PageWithAds>
-      <div className="space-y-6 md:space-y-8">
+      <div className="space-y-8 md:space-y-10">
+        {/* Page Header */}
         <div>
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">Surveys & Offers</h1>
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">Earn Points</h1>
           <p className="text-muted-foreground text-base md:text-lg">
-            Complete surveys and offers to earn extra points!
+            Complete surveys to earn points and unlock rewards!
           </p>
         </div>
 
-        {/* Offerwall Surveys Section */}
-        <div className="mb-6 md:mb-8">
+        {/* Survey Categories Section */}
+        <section>
+          <div className="mb-4">
+            <h2 className="text-xl md:text-2xl font-bold">Survey Categories</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Browse surveys by category and start earning
+            </p>
+          </div>
           <OfferwallSurvey userId={currentUser?.userId} />
-        </div>
+        </section>
 
-        {/* Regular Surveys Section - Always visible */}
-        <div>
-          <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">Available Surveys</h2>
+        {/* Divider */}
+        <div className="border-t pt-8">
+          {/* Regular Surveys Section */}
+          <div className="mb-4">
+            <h2 className="text-xl md:text-2xl font-bold">Quick Surveys</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Short surveys created by our team
+            </p>
+          </div>
           {surveys.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {surveysWithStatus.map((survey) => (
