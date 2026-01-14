@@ -4,10 +4,12 @@ export interface User {
   id: string;
   email: string;
   username: string;
-  passwordHash: string;
+  passwordHash?: string; // Optional for OAuth users
   points: number;
   createdAt: string;
   lastResetDate: string; // Date when points were last reset
+  oauthProvider?: 'google' | 'facebook' | 'credentials';
+  oauthProviderId?: string; // Provider-specific user ID
 }
 
 export interface Survey {

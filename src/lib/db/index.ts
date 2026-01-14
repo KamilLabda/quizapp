@@ -75,6 +75,15 @@ export async function getUserByEmail(email: string): Promise<User | null> {
   return toPlainObject(user) as User | null;
 }
 
+export async function getUserByOAuthProvider(provider: string, providerId: string): Promise<User | null> {
+  const db = await connectDB();
+  const user = await db.collection('users').findOne({ 
+    oauthProvider: provider,
+    oauthProviderId: providerId 
+  });
+  return toPlainObject(user) as User | null;
+}
+
 export async function createUser(user: Omit<User, 'id' | 'createdAt' | 'lastResetDate'>): Promise<User> {
   const db = await connectDB();
   const newUser = {

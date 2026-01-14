@@ -24,31 +24,31 @@ interface OfferwallSurveyProps {
 const SURVEY_PROVIDERS: SurveyProvider[] = [
   {
     id: 'cpx-research',
-    name: 'CPX Research',
+    name: 'Offer 1',
     description: 'Premium market research surveys',
     color: 'from-blue-500 to-blue-600',
   },
   {
     id: 'offertoro',
-    name: 'OfferToro',
+    name: 'Offer 2',
     description: 'Quick surveys & offers',
     color: 'from-green-500 to-green-600',
   },
   {
     id: 'adgate',
-    name: 'AdGate Media',
+    name: 'Offer 3',
     description: 'Verified survey rewards',
     color: 'from-purple-500 to-purple-600',
   },
   {
     id: 'lootably',
-    name: 'Lootably',
+    name: 'Offer 4',
     description: 'Gaming & lifestyle surveys',
     color: 'from-orange-500 to-orange-600',
   },
   {
     id: 'adgem',
-    name: 'AdGem',
+    name: 'Offer 5',
     description: 'High-paying survey offers',
     color: 'from-pink-500 to-pink-600',
   },
@@ -171,27 +171,24 @@ export function OfferwallSurvey({ userId, onComplete }: OfferwallSurveyProps) {
         {SURVEY_PROVIDERS.map((provider) => (
           <Card 
             key={provider.id}
-            className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+            className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col p-0"
             onClick={() => fetchProviderUrl(provider.id)}
           >
             <div className={`h-2 bg-gradient-to-r ${provider.color}`} />
-            <CardContent className="p-4">
-              <div className="space-y-2">
-                <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+            <CardContent className="p-4 flex flex-col flex-1 pb-4">
+              <div className="flex-1 flex items-center justify-center">
+                <h3 className="font-semibold text-lg group-hover:text-primary transition-colors text-center">
                   {provider.name}
                 </h3>
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {provider.description}
-                </p>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full mt-4 group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-              >
-                View Surveys
-              </Button>
             </CardContent>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full rounded-t-none rounded-b-xl border-t border-x-0 border-b-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors m-0"
+            >
+              View Surveys
+            </Button>
           </Card>
         ))}
       </div>
@@ -199,7 +196,7 @@ export function OfferwallSurvey({ userId, onComplete }: OfferwallSurveyProps) {
       {/* Info Section */}
       <div className="bg-muted/50 rounded-lg p-4 text-center">
         <p className="text-sm text-muted-foreground">
-          Select any category above to explore available surveys and start earning points.
+          Click on any offer above to browse available surveys and start earning rewards.
         </p>
       </div>
     </div>
