@@ -16,27 +16,39 @@ interface OfferwallConfig {
   apiKey?: string;
   userId?: string;
   subId?: string;
+  wallId?: string;
 }
 
 function getOfferwallUrl(config: OfferwallConfig): string {
-  const { provider, apiKey, userId, subId } = config;
+  const { provider, apiKey, userId, subId, wallId } = config;
 
   // Real Offerwall URLs - these will work when real API keys are provided
   const getRealUrl = (): string | null => {
-    if (!apiKey || provider === 'dummy') return null;
+    if (provider === 'dummy') return null;
     
     switch (provider) {
+      case 'kiwiwall':
+        // KiwiWall uses iframe URL with wall ID and sub_id
+        if (!wallId) return null;
+        const kiwiSubId = subId || userId || 'guest';
+        return `https://www.kiwiwall.com/wall/${wallId}/${kiwiSubId}`;
       case 'adgate':
+        if (!apiKey) return null;
         return `https://api.adgatemedia.com/v1/offers?api_key=${apiKey}&user_id=${userId || ''}`;
       case 'adscend':
+        if (!apiKey) return null;
         return `https://api.adscendmedia.com/v1/publishers/${apiKey}/offers?user_id=${userId || ''}`;
       case 'offertoro':
+        if (!apiKey) return null;
         return `https://www.offertoro.com/ifr/show/${apiKey}?uid=${userId || ''}`;
       case 'lootably':
+        if (!apiKey) return null;
         return `https://lootably.com/offers?api_key=${apiKey}&user_id=${userId || ''}`;
       case 'cpx':
+        if (!apiKey) return null;
         return `https://www.cpx-research.com/surveys?api_key=${apiKey}&user_id=${userId || ''}`;
       case 'adgem':
+        if (!apiKey) return null;
         return `https://api.adgem.com/v1/offers?api_key=${apiKey}&user_id=${userId || ''}`;
       default:
         return null;
@@ -262,19 +274,34 @@ export async function POST(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser();
     const body = await request.json();
+    const providerFromBody = body.provider;
     const userId = body.userId || currentUser?.userId || 'guest';
 
-    // Get Offerwall configuration from environment or config
-    const provider = process.env.OFFERWALL_PROVIDER || 'dummy';
+    // Get Offerwall configuration from environment or body
+    const provider = providerFromBody || process.env.OFFERWALL_PROVIDER || 'dummy';
     const apiKey = process.env.OFFERWALL_API_KEY;
     const subId = process.env.OFFERWALL_SUB_ID || userId;
+
+    // KiwiWall-specific configuration
+    let wallId: string | undefined;
+    if (provider === 'kiwiwall') {
+      wallId = process.env.KIWIWALL_WALL_ID || '4oi3suf4hfah2s5clri5cgaauw6qhnk6';
+    }
 
     const offerwallUrl = getOfferwallUrl({
       provider,
       apiKey,
       userId,
       subId,
+      wallId,
     });
+
+    if (!offerwallUrl) {
+      return NextResponse.json(
+        { error: 'Failed to generate offerwall URL. Provider not configured.' },
+        { status: 400 }
+      );
+    }
 
     return NextResponse.json({
       url: offerwallUrl,

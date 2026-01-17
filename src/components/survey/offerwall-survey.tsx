@@ -20,37 +20,38 @@ interface OfferwallSurveyProps {
   onComplete?: (points: number) => void;
 }
 
-// Survey providers configuration - easy to add more
+// Survey providers configuration
+// KiwiWall is the real provider (prioritized first), others are placeholders
 const SURVEY_PROVIDERS: SurveyProvider[] = [
   {
-    id: 'cpx-research',
+    id: 'kiwiwall',
     name: 'Offer 1',
+    description: 'Premium offers & surveys',
+    color: 'from-teal-500 to-teal-600',
+  },
+  {
+    id: 'cpx-research',
+    name: 'Offer 2',
     description: 'Premium market research surveys',
     color: 'from-blue-500 to-blue-600',
   },
   {
     id: 'offertoro',
-    name: 'Offer 2',
+    name: 'Offer 3',
     description: 'Quick surveys & offers',
     color: 'from-green-500 to-green-600',
   },
   {
     id: 'adgate',
-    name: 'Offer 3',
+    name: 'Offer 4',
     description: 'Verified survey rewards',
     color: 'from-purple-500 to-purple-600',
   },
   {
     id: 'lootably',
-    name: 'Offer 4',
+    name: 'Offer 5',
     description: 'Gaming & lifestyle surveys',
     color: 'from-orange-500 to-orange-600',
-  },
-  {
-    id: 'adgem',
-    name: 'Offer 5',
-    description: 'High-paying survey offers',
-    color: 'from-pink-500 to-pink-600',
   },
 ];
 
@@ -174,7 +175,7 @@ export function OfferwallSurvey({ userId, onComplete }: OfferwallSurveyProps) {
             className="group cursor-pointer hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden flex flex-col p-0"
             onClick={() => fetchProviderUrl(provider.id)}
           >
-            <div className={`h-2 bg-gradient-to-r ${provider.color}`} />
+            <div className={`h-2 bg-linear-to-r ${provider.color}`} />
             <CardContent className="p-4 flex flex-col flex-1 pb-4">
               <div className="flex-1 flex items-center justify-center">
                 <h3 className="font-semibold text-lg group-hover:text-primary transition-colors text-center">

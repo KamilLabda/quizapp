@@ -77,11 +77,26 @@ export interface LinkShortener {
 
 export interface AnalyticsEvent {
   id: string;
-  type: 'survey_view' | 'survey_complete' | 'ad_click' | 'shortlink_use' | 'video_ad_watch' | 'external_survey_start' | 'external_survey_complete';
+  type: 'survey_view' | 'survey_complete' | 'ad_click' | 'shortlink_use' | 'video_ad_watch' | 'external_survey_start' | 'external_survey_complete' | 'offerwall_complete';
   userId?: string;
   surveyId?: string;
   metadata?: Record<string, any>;
   timestamp: string;
+}
+
+export interface OfferwallTransaction {
+  id: string;
+  userId: string;
+  provider: string; // 'kiwiwall' | 'adgate' | etc.
+  transactionId: string; // External transaction ID from provider
+  offerId?: string;
+  offerName?: string;
+  rewardAmount: number;
+  pointsAwarded: number;
+  currency?: string;
+  completedAt: string;
+  status: 'pending' | 'completed' | 'failed';
+  metadata?: Record<string, any>;
 }
 
 export interface VideoAdReward {

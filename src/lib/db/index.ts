@@ -11,7 +11,7 @@ if (typeof window !== 'undefined') {
 }
 
 import connectDB from './mongodb';
-import { User, Survey, UserSurveyCompletion, DailyLimit, AdConfig, LinkShortener, AnalyticsEvent, VideoAdReward } from '@/types';
+import { User, Survey, UserSurveyCompletion, DailyLimit, AdConfig, LinkShortener, AnalyticsEvent, VideoAdReward, OfferwallTransaction } from '@/types';
 import { ObjectId } from 'mongodb';
 
 // Helper to convert MongoDB document to plain object with string ID
@@ -414,4 +414,138 @@ export async function incrementVideoAdReward(userId: string, date: string): Prom
     date: result!.date,
     count: result!.count || 0,
   };
+}
+
+// ==================== OFFERWALL TRANSACTIONS ====================
+
+/**
+ * Check if a transaction has already been processed
+ * Prevents duplicate point awards from the same transaction
+ */
+export async function hasTransactionBeenProcessed(
+  provider: string,
+  transactionId: string
+): Promise<boolean> {
+  const db = await connectDB();
+  const transaction = await db.collection('offerwalltransactions').findOne({
+    provider,
+    transactionId,
+    status: 'completed',
+  });
+  return !!transaction;
+}
+
+/**
+ * Record an offerwall transaction
+ */
+export async function recordOfferwallTransaction(
+  transaction: Omit<OfferwallTransaction, 'id'>
+): Promise<OfferwallTransaction> {
+  const db = await connectDB();
+  const userIdValue = isValidObjectId(transaction.userId) ? toObjectId(transaction.userId) : transaction.userId;
+  
+  const doc: any = {
+    userId: userIdValue,
+    provider: transaction.provider,
+    transactionId: transaction.transactionId,
+    offerId: transaction.offerId,
+    offerName: transaction.offerName,
+    rewardAmount: transaction.rewardAmount,
+    pointsAwarded: transaction.pointsAwarded,
+    currency: transaction.currency,
+    completedAt: transaction.completedAt || new Date().toISOString(),
+    status: transaction.status || 'pending',
+    metadata: transaction.metadata || {},
+  };
+  
+  const result = await db.collection('offerwalltransactions').insertOne(doc);
+  return {
+    ...transaction,
+    id: result.insertedId.toString(),
+  };
+}
+
+/**
+ * Update transaction status
+ */
+export async function updateOfferwallTransactionStatus(
+  transactionId: string,
+  status: 'pending' | 'completed' | 'failed'
+): Promise<void> {
+  const db = await connectDB();
+  
+  // Find by transactionId field instead of _id if it's not an ObjectId
+  const query: any = isValidObjectId(transactionId) 
+    ? { _id: toObjectId(transactionId) }
+    : { transactionId }; // Search by transactionId field if not ObjectId
+  
+  await db.collection('offerwalltransactions').updateOne(
+    query,
+    { $set: { status } }
+  );
+}
+
+/**
+ * Get all offerwall transactions for a user
+ */
+export async function getUserOfferwallTransactions(
+  userId: string,
+  limit: number = 50,
+  offset: number = 0
+): Promise<OfferwallTransaction[]> {
+  const db = await connectDB();
+  const userIdValue = isValidObjectId(userId) ? toObjectId(userId) : userId;
+  
+  const transactions = await db.collection('offerwalltransactions')
+    .find({ userId: userIdValue })
+    .sort({ completedAt: -1 })
+    .limit(limit)
+    .skip(offset)
+    .toArray();
+  
+  return transactions.map(t => {
+    const { _id, userId: uid, ...rest } = t as any;
+    return {
+      ...rest,
+      id: _id.toString(),
+      userId: typeof uid === 'object' ? uid.toString() : uid || userId,
+    } as OfferwallTransaction;
+  });
+}
+
+/**
+ * Get user's offerwall completion statistics
+ */
+export async function getUserOfferwallStats(userId: string): Promise<{
+  totalCompletions: number;
+  totalPointsEarned: number;
+  byProvider: Record<string, { count: number; points: number }>;
+}> {
+  const db = await connectDB();
+  const userIdValue = isValidObjectId(userId) ? toObjectId(userId) : userId;
+  
+  const transactions = await db.collection('offerwalltransactions')
+    .find({ userId: userIdValue, status: 'completed' })
+    .toArray();
+  
+  const stats = {
+    totalCompletions: transactions.length,
+    totalPointsEarned: 0,
+    byProvider: {} as Record<string, { count: number; points: number }>,
+  };
+  
+  transactions.forEach((t: any) => {
+    const provider = t.provider || 'unknown';
+    const points = t.pointsAwarded || 0;
+    
+    stats.totalPointsEarned += points;
+    
+    if (!stats.byProvider[provider]) {
+      stats.byProvider[provider] = { count: 0, points: 0 };
+    }
+    stats.byProvider[provider].count += 1;
+    stats.byProvider[provider].points += points;
+  });
+  
+  return stats;
 }
