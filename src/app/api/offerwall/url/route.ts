@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
+import { getUserById } from '@/lib/db';
+import crypto from 'crypto';
 
 /**
  * API endpoint to get Offerwall URL
@@ -45,8 +47,10 @@ function getOfferwallUrl(config: OfferwallConfig): string {
         if (!apiKey) return null;
         return `https://lootably.com/offers?api_key=${apiKey}&user_id=${userId || ''}`;
       case 'cpx':
-        if (!apiKey) return null;
-        return `https://www.cpx-research.com/surveys?api_key=${apiKey}&user_id=${userId || ''}`;
+      case 'cpx-research':
+        // CPX Research uses specific iframe URL format
+        // URL will be generated dynamically with user info in POST handler
+        return null; // Will be generated in POST handler with user data
       case 'adgem':
         if (!apiKey) return null;
         return `https://api.adgem.com/v1/offers?api_key=${apiKey}&user_id=${userId || ''}`;
@@ -286,6 +290,58 @@ export async function POST(request: NextRequest) {
     let wallId: string | undefined;
     if (provider === 'kiwiwall') {
       wallId = process.env.KIWIWALL_WALL_ID || '4oi3suf4hfah2s5clri5cgaauw6qhnk6';
+    }
+
+    // CPX Research-specific URL generation with required parameters
+    if (provider === 'cpx' || provider === 'cpx-research') {
+      // Get user information for CPX parameters
+      const user = userId && userId !== 'guest' ? await getUserById(userId) : null;
+      
+      if (!user) {
+        return NextResponse.json(
+          { error: 'User not found. Please log in to access CPX Research surveys.' },
+          { status: 401 }
+        );
+      }
+
+      // CPX Research configuration
+      const CPX_APP_ID = process.env.CPX_APP_ID || '31020';
+      const CPX_SECURE_HASH_KEY = process.env.CPX_SECURE_HASH_KEY || '';
+      
+      // Generate secure_hash: MD5(ext_user_id + secure_hash_key)
+      let secureHash = '';
+      if (CPX_SECURE_HASH_KEY) {
+        secureHash = crypto
+          .createHash('md5')
+          .update(`${user.id}${CPX_SECURE_HASH_KEY}`)
+          .digest('hex');
+      }
+
+      // Build CPX Research iframe URL with all required parameters
+      const cpxUrl = new URL('https://offers.cpx-research.com/index.php');
+      cpxUrl.searchParams.set('app_id', CPX_APP_ID);
+      cpxUrl.searchParams.set('ext_user_id', user.id);
+      
+      if (secureHash) {
+        cpxUrl.searchParams.set('secure_hash', secureHash);
+      }
+      
+      if (user.username) {
+        cpxUrl.searchParams.set('username', user.username);
+      }
+      
+      if (user.email) {
+        cpxUrl.searchParams.set('email', user.email);
+      }
+      
+      // Optional subid parameters (can be empty)
+      cpxUrl.searchParams.set('subid_1', '');
+      cpxUrl.searchParams.set('subid_2', '');
+
+      return NextResponse.json({
+        url: cpxUrl.toString(),
+        provider: 'cpx-research',
+      });
     }
 
     const offerwallUrl = getOfferwallUrl({

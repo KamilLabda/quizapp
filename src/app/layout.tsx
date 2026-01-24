@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 import { ScrollToTop } from "@/components/layout/scroll-to-top";
 import { AdVerification } from "@/components/layout/ad-verification";
 import { AdScripts } from "@/components/layout/ad-scripts";
@@ -83,11 +84,14 @@ export default function RootLayout({
         <AdScripts />
         <ScrollToTop />
         <Header />
-        <main className="container mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-8 min-h-[calc(100vh-4rem)]">
+        <div className="flex flex-col min-h-screen">
+          <main className="container mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-8 flex-1">
           <div className="w-full">
             {children}
           </div>
         </main>
+          <Footer />
+        </div>
       </body>
     </html>
   );
