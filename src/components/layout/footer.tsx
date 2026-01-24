@@ -61,10 +61,16 @@ export function Footer() {
               </h3>
               <nav className="flex flex-col space-y-3">
                 <Link
-                  href="/regulations"
+                  href="/privacy-policy"
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 hover:translate-x-1 inline-block"
                 >
-                  Regulations
+                  Privacy Policy
+                </Link>
+                <Link
+                  href="/terms-of-use"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 hover:translate-x-1 inline-block"
+                >
+                  Terms of Use
                 </Link>
                 <Link
                   href="/contact"
