@@ -275,10 +275,11 @@ function getOfferwallUrl(config: OfferwallConfig): string {
 }
 
 export async function POST(request: NextRequest) {
+  let providerFromBody = 'unknown';
   try {
     const currentUser = await getCurrentUser();
     const body = await request.json();
-    const providerFromBody = body.provider;
+    providerFromBody = body.provider;
     const userId = body.userId || currentUser?.userId || 'guest';
 
     // Get Offerwall configuration from environment or body
@@ -299,7 +300,12 @@ export async function POST(request: NextRequest) {
       
       if (!user) {
         return NextResponse.json(
-          { error: 'User not found. Please log in to access CPX Research surveys.' },
+          { 
+            error: 'Authentication required',
+            message: 'Please log in to access surveys. If you are already logged in, please try refreshing the page.',
+            provider: 'cpx-research',
+            providerName: 'Offer 2'
+          },
           { status: 401 }
         );
       }
@@ -353,20 +359,42 @@ export async function POST(request: NextRequest) {
     });
 
     if (!offerwallUrl) {
+      const providerName = provider === 'kiwiwall' ? 'Offer 1' :
+                          provider === 'cpx-research' || provider === 'cpx' ? 'Offer 2' :
+                          provider === 'offertoro' ? 'Offer 3' :
+                          provider === 'adgate' ? 'Offer 4' :
+                          provider === 'lootably' ? 'Offer 5' : 'Survey Provider';
+      
       return NextResponse.json(
-        { error: 'Failed to generate offerwall URL. Provider not configured.' },
+        { 
+          error: 'Service temporarily unavailable',
+          message: `We're unable to load ${providerName} at the moment. Please try again later or select a different survey provider.`,
+          provider,
+          providerName
+        },
         { status: 400 }
       );
     }
 
+    const providerName = provider === 'kiwiwall' ? 'Offer 1' :
+                        provider === 'cpx-research' || provider === 'cpx' ? 'Offer 2' :
+                        provider === 'offertoro' ? 'Offer 3' :
+                        provider === 'adgate' ? 'Offer 4' :
+                        provider === 'lootably' ? 'Offer 5' : 'Survey Provider';
+
     return NextResponse.json({
       url: offerwallUrl,
       provider,
+      providerName,
     });
   } catch (error) {
     console.error('Error generating Offerwall URL:', error);
     return NextResponse.json(
-      { error: 'Failed to generate Offerwall URL' },
+      { 
+        error: 'Something went wrong',
+        message: 'We encountered an issue while loading surveys. Please try again in a moment.',
+        provider: providerFromBody
+      },
       { status: 500 }
     );
   }

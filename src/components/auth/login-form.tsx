@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/components/ui/toast';
 import { getGuestCompletions, clearGuestCompletions } from '@/lib/guest-session';
 import { HCaptchaComponent } from './hcaptcha';
 
@@ -20,11 +20,15 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export function LoginForm() {
+interface LoginFormProps {
+  redirectTo?: string;
+}
+
+export function LoginForm({ redirectTo = '/surveys' }: LoginFormProps) {
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hcaptchaToken, setHcaptchaToken] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -36,10 +40,13 @@ export function LoginForm() {
 
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
-    setError(null);
 
     if (!hcaptchaToken) {
-      setError('Please complete the captcha verification');
+      toast({
+        variant: 'error',
+        title: 'Verification required',
+        description: 'Please complete the captcha verification to continue.',
+      });
       setIsLoading(false);
       return;
     }
@@ -57,7 +64,11 @@ export function LoginForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Login failed');
+        toast({
+          variant: 'error',
+          title: 'Login failed',
+          description: data?.error || 'Please check your email and password and try again.',
+        });
         return;
       }
 
@@ -83,11 +94,21 @@ export function LoginForm() {
       // Dispatch custom event to notify header of auth state change
       window.dispatchEvent(new CustomEvent('auth-state-changed'));
       
-      // Redirect to surveys page
-      router.push('/surveys');
+      // Redirect to intended page or surveys
+      toast({
+        variant: 'success',
+        title: 'Welcome back',
+        description: "You're now signed in. Redirecting...",
+        durationMs: 2500,
+      });
+      router.push(redirectTo);
       router.refresh();
     } catch (err) {
-      setError('An unexpected error occurred');
+      toast({
+        variant: 'error',
+        title: 'Something went wrong',
+        description: 'We couldn’t sign you in. Please try again in a moment.',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -109,17 +130,14 @@ export function LoginForm() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
             <Button
               type="button"
               variant="outline"
               className="w-full"
-              onClick={() => window.location.href = '/api/auth/oauth/google'}
+              onClick={() => {
+                const redirectParam = redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : '';
+                window.location.href = `/api/auth/oauth/google${redirectParam}`;
+              }}
             >
               <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
                 <path

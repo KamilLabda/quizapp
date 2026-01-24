@@ -6,6 +6,25 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const BASE_URL = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
+function resolveSafeRedirectUrl(rawRedirect: string | undefined, baseUrl: string): string {
+  // Default fallback
+  const fallback = new URL('/surveys', baseUrl).toString();
+  if (!rawRedirect) return fallback;
+
+  try {
+    // Allow relative paths like "/surveys" by resolving against BASE_URL
+    const resolved = new URL(rawRedirect, baseUrl);
+    const base = new URL(baseUrl);
+
+    // Prevent open-redirects: only allow same-origin redirects
+    if (resolved.origin !== base.origin) return fallback;
+
+    return resolved.toString();
+  } catch {
+    return fallback;
+  }
+}
+
 interface GoogleUserInfo {
   id: string;
   email: string;
@@ -112,9 +131,13 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Get redirect URL from cookie (may be relative like "/surveys")
+    const redirectCookie = request.cookies.get('oauth-redirect')?.value;
+    const redirectTo = resolveSafeRedirectUrl(redirectCookie, BASE_URL);
+    
     // Generate token and set cookie
     const token = generateToken({ userId: user.id, email: user.email });
-    const response = NextResponse.redirect(`${BASE_URL}/surveys`);
+    const response = NextResponse.redirect(redirectTo);
     
     // Set auth token cookie
     response.cookies.set('auth-token', token, {
@@ -124,8 +147,9 @@ export async function GET(request: NextRequest) {
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
-    // Clear OAuth state cookie
+    // Clear OAuth state and redirect cookies
     response.cookies.delete('oauth-state');
+    response.cookies.delete('oauth-redirect');
 
     return response;
   } catch (error) {

@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/components/ui/toast';
 import { Play, Trophy, Loader2 } from 'lucide-react';
 
 export function VideoAdsClient() {
@@ -12,7 +13,7 @@ export function VideoAdsClient() {
   const [remaining, setRemaining] = useState(5);
   const [points, setPoints] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchStats();
@@ -34,7 +35,6 @@ export function VideoAdsClient() {
 
   const handleWatchAd = async () => {
     setIsLoading(true);
-    setError(null);
 
     try {
       const response = await fetch('/api/video-ads/watch', {
@@ -44,7 +44,11 @@ export function VideoAdsClient() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Failed to watch ad');
+        toast({
+          variant: 'error',
+          title: 'Unable to watch ad',
+          description: data.error || 'Please try again in a moment.',
+        });
         return;
       }
 
@@ -53,10 +57,19 @@ export function VideoAdsClient() {
       setRemaining(data.remainingToday);
       setPoints(data.newTotalPoints);
 
-      // Show success message
-      alert(`You earned ${data.pointsEarned} point! Total: ${data.newTotalPoints} points`);
+      // Show success toast
+      toast({
+        variant: 'success',
+        title: 'Points earned!',
+        description: `You earned ${data.pointsEarned} point${data.pointsEarned !== 1 ? 's' : ''}! Total: ${data.newTotalPoints} points`,
+        durationMs: 4000,
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      toast({
+        variant: 'error',
+        title: 'Something went wrong',
+        description: 'We couldn\'t load the ad. Please try again in a moment.',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -79,12 +92,6 @@ export function VideoAdsClient() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
           <div className="grid grid-cols-2 gap-4">
             <Card>
               <CardContent className="pt-6">

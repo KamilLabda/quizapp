@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/components/ui/toast';
 import { getGuestCompletions, clearGuestCompletions } from '@/lib/guest-session';
 import { HCaptchaComponent } from './hcaptcha';
 
@@ -27,9 +27,9 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hcaptchaToken, setHcaptchaToken] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -43,10 +43,13 @@ export function RegisterForm() {
 
   const onSubmit = async (values: RegisterFormValues) => {
     setIsLoading(true);
-    setError(null);
 
     if (!hcaptchaToken) {
-      setError('Please complete the captcha verification');
+      toast({
+        variant: 'error',
+        title: 'Verification required',
+        description: 'Please complete the captcha verification to create your account.',
+      });
       setIsLoading(false);
       return;
     }
@@ -66,7 +69,11 @@ export function RegisterForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Registration failed');
+        toast({
+          variant: 'error',
+          title: 'Registration failed',
+          description: data?.error || 'Please review your details and try again.',
+        });
         return;
       }
 
@@ -93,10 +100,20 @@ export function RegisterForm() {
       window.dispatchEvent(new CustomEvent('auth-state-changed'));
       
       // Redirect to surveys page
+      toast({
+        variant: 'success',
+        title: 'Account created',
+        description: 'Welcome to Punkcikowo. Redirecting…',
+        durationMs: 2500,
+      });
       router.push('/surveys');
       router.refresh();
     } catch (err) {
-      setError('An unexpected error occurred');
+      toast({
+        variant: 'error',
+        title: 'Something went wrong',
+        description: 'We couldn’t create your account. Please try again in a moment.',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -118,12 +135,6 @@ export function RegisterForm() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
             <Button
               type="button"
               variant="outline"

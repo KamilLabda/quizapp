@@ -14,7 +14,10 @@ export async function GET(request: NextRequest) {
   const callbackUrl = `${BASE_URL}/api/auth/oauth/google/callback`;
   const state = crypto.randomUUID();
   
-  // Store state in cookie for verification (7 days)
+  // Get redirect URL from query params (where to return after login)
+  const redirectTo = request.nextUrl.searchParams.get('redirect') || '/surveys';
+  
+  // Store state and redirect URL in cookies for verification
   const response = NextResponse.redirect(
     `https://accounts.google.com/o/oauth2/v2/auth?` +
     `client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
@@ -27,6 +30,15 @@ export async function GET(request: NextRequest) {
   );
 
   response.cookies.set('oauth-state', state, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24 * 7, // 7 days
+    path: '/',
+  });
+
+  // Store redirect URL
+  response.cookies.set('oauth-redirect', redirectTo, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',

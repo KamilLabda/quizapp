@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/footer";
 import { ScrollToTop } from "@/components/layout/scroll-to-top";
 import { AdVerification } from "@/components/layout/ad-verification";
 import { AdScripts } from "@/components/layout/ad-scripts";
+import { ToastProvider } from "@/components/ui/toast";
 import Script from "next/script";
 
 const geistSans = Geist({
@@ -80,18 +81,20 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <AdVerification />
-        <AdScripts />
-        <ScrollToTop />
-        <Header />
-        <div className="flex flex-col min-h-screen">
-          <main className="container mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-8 flex-1">
-          <div className="w-full">
-            {children}
+        <ToastProvider>
+          <AdVerification />
+          <AdScripts />
+          <ScrollToTop />
+          <Header />
+          <div className="flex flex-col min-h-screen">
+            <main className="container mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-8 flex-1">
+            <div className="w-full">
+              {children}
+            </div>
+          </main>
+            <Footer />
           </div>
-        </main>
-          <Footer />
-        </div>
+        </ToastProvider>
       </body>
     </html>
   );

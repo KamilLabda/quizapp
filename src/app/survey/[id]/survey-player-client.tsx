@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/components/ui/toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, CheckCircle2, Clock } from 'lucide-react';
 import { AdPlaceholder } from '@/components/ads/ad-placeholder';
@@ -43,8 +44,9 @@ export function SurveyPlayerClient({ surveyId }: { surveyId: string }) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [timeError, setTimeError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const { toast } = useToast();
   const [startTime, setStartTime] = useState<number | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
@@ -122,7 +124,11 @@ export function SurveyPlayerClient({ surveyId }: { surveyId: string }) {
       const data = await response.json();
       setSurvey(data.survey);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load survey');
+      toast({
+        variant: 'error',
+        title: 'Unable to load survey',
+        description: err instanceof Error ? err.message : 'Please try again in a moment.',
+      });
     }
   };
 
@@ -155,12 +161,17 @@ export function SurveyPlayerClient({ surveyId }: { surveyId: string }) {
   const handleSubmit = async () => {
     // Check if minimum time has passed
     if (timeRemaining !== null && timeRemaining > 0) {
-      setError(`Please wait ${Math.ceil(timeRemaining)} more seconds before submitting.`);
+      setTimeError(`Please wait ${Math.ceil(timeRemaining)} more seconds before submitting.`);
+      toast({
+        variant: 'error',
+        title: 'Please wait',
+        description: `Please spend at least ${Math.ceil(timeRemaining)} more seconds reviewing the questions before submitting.`,
+      });
       return;
     }
     
     setIsSubmitting(true);
-    setError(null);
+    setTimeError(null);
 
     try {
       const response = await fetch(`/api/surveys/${surveyId}/submit`, {
@@ -198,7 +209,11 @@ export function SurveyPlayerClient({ surveyId }: { surveyId: string }) {
       setSuccess(true);
       setShowInterstitialAd(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit survey');
+      toast({
+        variant: 'error',
+        title: 'Submission failed',
+        description: err instanceof Error ? err.message : 'Please try again in a moment.',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -301,9 +316,9 @@ export function SurveyPlayerClient({ surveyId }: { surveyId: string }) {
           <CardDescription className="text-sm md:text-base">{currentQuestion.question}</CardDescription>
         </CardHeader>
         <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-          {error && (
+          {timeError && (
             <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>{timeError}</AlertDescription>
             </Alert>
           )}
 
