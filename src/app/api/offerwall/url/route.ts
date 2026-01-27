@@ -314,12 +314,13 @@ export async function POST(request: NextRequest) {
       const CPX_APP_ID = process.env.CPX_APP_ID || '31020';
       const CPX_SECURE_HASH_KEY = process.env.CPX_SECURE_HASH_KEY || '';
       
-      // Generate secure_hash: MD5(ext_user_id + secure_hash_key)
+      // Generate secure_hash: MD5(ext_user_id + '-' + secure_hash_key)
+      // IMPORTANT: CPX requires a hyphen between user_id and secure_hash
       let secureHash = '';
       if (CPX_SECURE_HASH_KEY) {
         secureHash = crypto
           .createHash('md5')
-          .update(`${user.id}${CPX_SECURE_HASH_KEY}`)
+          .update(`${user.id}-${CPX_SECURE_HASH_KEY}`)
           .digest('hex');
       }
 

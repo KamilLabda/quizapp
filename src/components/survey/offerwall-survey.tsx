@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toast';
 import { Loader2, ChevronLeft } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Image from 'next/image';
 
 interface SurveyProvider {
   id: string;
@@ -34,6 +35,7 @@ const SURVEY_PROVIDERS: SurveyProvider[] = [
     name: 'Offer 2',
     description: 'Premium market research surveys',
     color: 'from-blue-500 to-blue-600',
+    logo: '/logos/logo2-cpx-reserach.png', // CPX Research logo
   },
   {
     id: 'offertoro',
@@ -204,7 +206,18 @@ export function OfferwallSurvey({ userId, onComplete }: OfferwallSurveyProps) {
           >
             <div className={`h-2 bg-linear-to-r ${provider.color}`} />
             <CardContent className="p-4 flex flex-col flex-1 pb-4">
-              <div className="flex-1 flex items-center justify-center">
+              <div className="flex-1 flex flex-col items-center justify-center gap-3">
+                {provider.logo && (
+                  <div className="relative w-16 h-16 flex-shrink-0">
+                    <Image
+                      src={provider.logo}
+                      alt={`${provider.name} logo`}
+                      fill
+                      className="object-contain"
+                      sizes="64px"
+                    />
+                  </div>
+                )}
                 <h3 className="font-semibold text-lg group-hover:text-primary transition-colors text-center">
                   {provider.name}
                 </h3>
