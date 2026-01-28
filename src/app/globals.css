@@ -265,10 +265,62 @@
   opacity: 1 !important;
 }
 
+/* Convert fixed bottom ads to sticky positioning */
+/* Target elements with position: fixed that are at the bottom */
+*[style*="position"][style*="fixed"][style*="bottom"],
+*[style*="position:fixed"][style*="bottom"],
+iframe[style*="position: fixed"][style*="bottom"],
+iframe[style*="position:fixed"][style*="bottom"],
+div[style*="position: fixed"][style*="bottom"],
+div[style*="position:fixed"][style*="bottom"] {
+  position: sticky !important;
+  bottom: 0 !important;
+  top: auto !important;
+  z-index: 30 !important;
+}
+
+/* Target elements positioned at bottom-left or bottom-right */
+*[style*="bottom: 0"][style*="left"],
+*[style*="bottom:0"][style*="left"],
+*[style*="bottom: 0"][style*="right"],
+*[style*="bottom:0"][style*="right"] {
+  position: sticky !important;
+  bottom: 0 !important;
+  top: auto !important;
+}
+
+/* Target direct children of body with fixed positioning (common for injected ads) */
+body > iframe[style*="position: fixed"],
+body > iframe[style*="position:fixed"],
+body > div[style*="position: fixed"][style*="bottom"],
+body > div[style*="position:fixed"][style*="bottom"] {
+  position: sticky !important;
+  bottom: 0 !important;
+  top: auto !important;
+}
+
+/* Override for elements that should remain fixed (modals, dialogs, toasts) */
+[role="dialog"],
+[data-state="open"],
+.modal,
+.dialog,
+[data-radix-portal],
+[class*="toast"],
+[class*="Toast"] {
+  position: fixed !important;
+}
+
 /* Responsive ad sizing */
 @media (max-width: 1024px) {
   .ad-container {
     max-width: 100%;
+  }
+  
+  /* On mobile, keep ads in normal flow */
+  iframe[style*="position: fixed"][style*="bottom"],
+  div[style*="position: fixed"][style*="bottom"] {
+    position: relative !important;
+    bottom: auto !important;
   }
 }
 

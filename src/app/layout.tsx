@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/footer";
 import { ScrollToTop } from "@/components/layout/scroll-to-top";
 import { AdVerification } from "@/components/layout/ad-verification";
 import { AdScripts } from "@/components/layout/ad-scripts";
+import { AdPositionFix } from "@/components/layout/ad-position-fix";
 import { ToastProvider } from "@/components/ui/toast";
 import Script from "next/script";
 
@@ -84,6 +85,7 @@ export default function RootLayout({
         <ToastProvider>
           <AdVerification />
           <AdScripts />
+          <AdPositionFix />
           <ScrollToTop />
           <Header />
           <div className="flex flex-col min-h-screen">
@@ -95,6 +97,20 @@ export default function RootLayout({
             <Footer />
           </div>
         </ToastProvider>
+        {/* Autotag script - placed before closing body tag as recommended */}
+        <Script
+          id="aclib-autotag-body"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window.aclib !== 'undefined' && typeof window.aclib.runAutoTag === 'function') {
+                window.aclib.runAutoTag({
+                  zoneId: '0z4zktony9',
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );
