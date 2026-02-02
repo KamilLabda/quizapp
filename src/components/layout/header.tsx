@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ClipboardList, LogOut, User, Trophy } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ClipboardList, LogOut, User, Trophy } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
@@ -28,20 +28,20 @@ export function Header() {
     };
 
     // Listen for custom auth events
-    window.addEventListener('auth-state-changed', handleAuthChange);
-    
+    window.addEventListener("auth-state-changed", handleAuthChange);
+
     // Also listen for storage changes (in case auth uses localStorage)
-    window.addEventListener('storage', handleAuthChange);
+    window.addEventListener("storage", handleAuthChange);
 
     return () => {
-      window.removeEventListener('auth-state-changed', handleAuthChange);
-      window.removeEventListener('storage', handleAuthChange);
+      window.removeEventListener("auth-state-changed", handleAuthChange);
+      window.removeEventListener("storage", handleAuthChange);
     };
   }, []);
 
   const fetchUser = async () => {
     try {
-      const response = await fetch('/api/auth/me');
+      const response = await fetch("/api/auth/me");
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
@@ -49,7 +49,7 @@ export function Header() {
         setUser(null);
       }
     } catch (error) {
-      console.error('Error fetching user:', error);
+      console.error("Error fetching user:", error);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -58,16 +58,16 @@ export function Header() {
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch("/api/auth/logout", { method: "POST" });
       setUser(null);
-      
+
       // Dispatch custom event to notify other components of auth state change
-      window.dispatchEvent(new CustomEvent('auth-state-changed'));
-      
-      router.push('/login');
+      window.dispatchEvent(new CustomEvent("auth-state-changed"));
+
+      router.push("/login");
       router.refresh();
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error("Error logging out:", error);
     }
   };
 
@@ -92,24 +92,56 @@ export function Header() {
           ) : user ? (
             <>
               <Link href="/surveys" className="hidden md:block">
-                <Button variant="default" size="sm" className="text-xs md:text-sm">Surveys</Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="text-xs md:text-sm"
+                >
+                  Surveys
+                </Button>
               </Link>
               <Link href="/video-ads" className="hidden lg:block">
-                <Button variant="default" size="sm" className="text-xs md:text-sm">Video Ads</Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="text-xs md:text-sm"
+                >
+                  Video Ads
+                </Button>
+              </Link>
+              <Link href="/video-player" className="hidden lg:block">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs md:text-sm"
+                >
+                  Video Player
+                </Button>
               </Link>
               <div className="flex items-center gap-1 md:gap-2">
-                <Badge variant="secondary" className="gap-1 text-xs px-2 py-0.5">
+                <Badge
+                  variant="secondary"
+                  className="gap-1 text-xs px-2 py-0.5"
+                >
                   <Trophy className="h-3 w-3" />
                   <span className="hidden sm:inline">{user.points} points</span>
                   <span className="sm:hidden">{user.points}</span>
                 </Badge>
                 <div className="flex items-center gap-1 text-xs md:text-sm text-muted-foreground">
                   <User className="h-3 w-3 md:h-4 md:w-4 shrink-0" />
-                  <span className="max-w-[100px] sm:max-w-[120px] md:max-w-[150px] truncate" title={user.username}>
+                  <span
+                    className="max-w-[100px] sm:max-w-[120px] md:max-w-[150px] truncate"
+                    title={user.username}
+                  >
                     {user.username}
                   </span>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleLogout} className="p-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="p-2"
+                >
                   <LogOut className="h-4 w-4" />
                 </Button>
               </div>
@@ -117,10 +149,22 @@ export function Header() {
           ) : (
             <>
               <Link href="/login">
-                <Button variant="outline" size="sm" className="text-xs md:text-sm">Login</Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs md:text-sm"
+                >
+                  Login
+                </Button>
               </Link>
               <Link href="/register">
-                <Button variant="default" size="sm" className="text-xs md:text-sm">Sign Up</Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="text-xs md:text-sm"
+                >
+                  Sign Up
+                </Button>
               </Link>
             </>
           )}
@@ -129,4 +173,3 @@ export function Header() {
     </header>
   );
 }
-
