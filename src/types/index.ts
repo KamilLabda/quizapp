@@ -103,6 +103,7 @@ export interface VideoAdReward {
   userId: string;
   date: string; // YYYY-MM-DD
   count: number; // Number of ads watched today
+  timestamps?: string[];
 }
 
 // External Survey API Integration

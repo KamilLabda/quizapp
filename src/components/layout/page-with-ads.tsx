@@ -2,6 +2,7 @@
 
 import { ReactNode } from 'react';
 import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+import { AdcashBanner } from '@/components/ads/adcash-banner';
 
 interface PageWithAdsProps {
   children: ReactNode;
@@ -20,7 +21,7 @@ export function PageWithAds({ children, surveyId, showSidebar = true }: PageWith
       {/* Top Ad - Centered with proper spacing */}
       <div className="mb-6 md:mb-8 w-full flex justify-center">
         <div className="w-full max-w-[320px] md:max-w-[728px] lg:max-w-[970px]">
-          <AdPlaceholder position="top" surveyId={surveyId} />
+          <AdcashBanner zoneId="10939006" />
         </div>
       </div>
 
@@ -36,7 +37,7 @@ export function PageWithAds({ children, surveyId, showSidebar = true }: PageWith
                 alignSelf: 'flex-start'
               }}
             >
-              <AdPlaceholder position="sidebar-left" surveyId={surveyId} />
+              <AdcashBanner zoneId="10938998" />
               <AdPlaceholder position="sidebar-left" surveyId={surveyId ? `${surveyId}-2` : undefined} />
             </div>
           </aside>
@@ -60,7 +61,7 @@ export function PageWithAds({ children, surveyId, showSidebar = true }: PageWith
                 alignSelf: 'flex-start'
               }}
             >
-              <AdPlaceholder position="sidebar-right" surveyId={surveyId} />
+              <AdcashBanner zoneId="10938998" />
               <AdPlaceholder position="sidebar-right" surveyId={surveyId ? `${surveyId}-3` : undefined} />
             </div>
           </aside>
@@ -70,7 +71,22 @@ export function PageWithAds({ children, surveyId, showSidebar = true }: PageWith
       {/* Bottom Ad - Centered with proper spacing */}
       <div className="mt-8 md:mt-12 w-full flex justify-center">
         <div className="w-full max-w-[320px] md:max-w-[728px] lg:max-w-[970px]">
-          <AdPlaceholder position="bottom" surveyId={surveyId} />
+          <div
+            dangerouslySetInnerHTML={{
+              __html: `
+                <script>
+                  atOptions = {
+                    'key' : 'b0b3a451dfc82c360aeeac84fb6be390',
+                    'format' : 'iframe',
+                    'height' : 50,
+                    'width' : 320,
+                    'params' : {}
+                  };
+                </script>
+                <script src="https://www.highperformanceformat.com/b0b3a451dfc82c360aeeac84fb6be390/invoke.js"></script>
+              `,
+            }}
+          />
         </div>
       </div>
     </div>

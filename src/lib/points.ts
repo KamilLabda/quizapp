@@ -9,7 +9,8 @@ import { getUserById, updateUser, getDailyLimit } from './db';
 export const POINTS_PER_QUIZ = 10;
 export const POINTS_PER_SURVEY = 10;
 export const POINTS_PER_VIDEO_AD = 1;
-export const MAX_VIDEO_ADS_PER_DAY = 5;
+export const MAX_VIDEO_ADS_PER_DAY = 25;
+export const MAX_VIDEO_ADS_PER_15_MIN = 5;
 
 /**
  * Get today's date in YYYY-MM-DD format

@@ -1,25 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RotatingAdSlot } from "@/components/ads/ad-rotation";
-import { Play, ExternalLink } from "lucide-react";
-
-/**
- * Piped Video Player Page
- *
- * Features:
- * - Uses Piped (privacy-friendly YouTube frontend)
- * - Surrounded by rotating banner ads
- * - Prevents iframe from going fullscreen
- * - Piped video ads are shown during viewing
- */
+import { Play } from "lucide-react";
 
 export default function VideoPlayerPage() {
   const [videoUrl, setVideoUrl] = useState("");
   const [pipedUrl, setPipedUrl] = useState("");
+  const instance = useMemo(() => {
+    const instances = [
+      "https://piped.video",
+      "https://piped.adminforge.de",
+      "https://piped.mha.fi",
+      "https://piped.lunar.icu",
+      "https://piped.projectsegfau.lt",
+    ];
+    return instances[Math.floor(Math.random() * instances.length)];
+  }, []);
 
   const handleLoadVideo = () => {
     if (!videoUrl) return;
@@ -39,8 +39,7 @@ export default function VideoPlayerPage() {
     }
 
     if (videoId) {
-      // Use Piped instance - piped.video is the official instance
-      setPipedUrl(`https://piped.video/embed/${videoId}`);
+      setPipedUrl(`${instance}/embed/${videoId}`);
     }
   };
 
@@ -66,7 +65,7 @@ export default function VideoPlayerPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Play className="h-6 w-6 text-primary" />
-                  Video Player (Piped)
+                  Video Player
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -86,27 +85,6 @@ export default function VideoPlayerPage() {
                   <Button onClick={handleLoadVideo}>Load Video</Button>
                 </div>
 
-                {/* Info */}
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <p>
-                    This player uses{" "}
-                    <a
-                      href="https://github.com/TeamPiped/Piped"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline inline-flex items-center gap-1"
-                    >
-                      Piped
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                    , a privacy-friendly YouTube frontend.
-                  </p>
-                  <p>
-                    Paste a YouTube URL or video ID above to watch videos with
-                    enhanced privacy.
-                  </p>
-                </div>
-
                 {/* Video Player Container */}
                 {pipedUrl ? (
                   <div
@@ -117,7 +95,7 @@ export default function VideoPlayerPage() {
                     <iframe
                       src={pipedUrl}
                       className="absolute top-0 left-0 w-full h-full rounded-lg border shadow-sm"
-                      title="Piped Video Player"
+                      title="Video Player"
                       frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       // Note: No allowFullScreen to prevent fullscreen mode

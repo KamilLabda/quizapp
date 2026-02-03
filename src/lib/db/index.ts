@@ -383,12 +383,14 @@ export async function getVideoAdReward(userId: string, date: string): Promise<Vi
       userId: userIdValue,
       date,
       count: 0,
+      timestamps: [],
     };
     await db.collection('videoadrewards').insertOne(newReward);
     return {
       userId,
       date,
       count: 0,
+      timestamps: [],
     };
   }
 
@@ -396,16 +398,23 @@ export async function getVideoAdReward(userId: string, date: string): Promise<Vi
     userId: typeof reward.userId === 'object' ? reward.userId.toString() : reward.userId || userId,
     date: reward.date,
     count: reward.count || 0,
+    timestamps: reward.timestamps || [],
   };
 }
 
-export async function incrementVideoAdReward(userId: string, date: string): Promise<VideoAdReward> {
+export async function incrementVideoAdReward(userId: string, date: string, timestamp: string): Promise<VideoAdReward> {
   const db = await connectDB();
   const userIdValue = isValidObjectId(userId) ? toObjectId(userId) : userId;
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const update = {
+    $inc: { count: 1 },
+    $push: { timestamps: { $each: [timestamp], $slice: -200 } },
+    $pull: { timestamps: { $lt: cutoff } },
+  } as any;
   
   const result = await db.collection('videoadrewards').findOneAndUpdate(
     { userId: userIdValue, date },
-    { $inc: { count: 1 } },
+    update,
     { upsert: true, returnDocument: 'after' }
   );
 
@@ -413,6 +422,7 @@ export async function incrementVideoAdReward(userId: string, date: string): Prom
     userId,
     date: result!.date,
     count: result!.count || 0,
+    timestamps: result!.timestamps || [],
   };
 }
 

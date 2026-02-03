@@ -10,7 +10,7 @@ import { Play, Trophy, Loader2 } from 'lucide-react';
 
 export function VideoAdsClient() {
   const [adsWatched, setAdsWatched] = useState(0);
-  const [remaining, setRemaining] = useState(5);
+  const [remaining, setRemaining] = useState(25);
   const [points, setPoints] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -80,7 +80,7 @@ export function VideoAdsClient() {
       <div>
         <h1 className="text-4xl font-bold mb-2">Watch Video Ads</h1>
         <p className="text-muted-foreground text-lg">
-          Watch video ads to earn extra points! (Max 5 per day)
+          Watch video ads to earn extra points! (Max 25 per day)
         </p>
       </div>
 
@@ -88,7 +88,7 @@ export function VideoAdsClient() {
         <CardHeader>
           <CardTitle>Earn Points by Watching Ads</CardTitle>
           <CardDescription>
-            Watch short video ads and earn 1 point per ad. You can watch up to 5 ads per day.
+            Watch short video ads and earn 1 point per ad. You can watch up to 25 ads per day.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -97,7 +97,7 @@ export function VideoAdsClient() {
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground mb-1">Ads Watched Today</p>
-                  <p className="text-3xl font-bold">{adsWatched} / 5</p>
+                  <p className="text-3xl font-bold">{adsWatched} / 25</p>
                 </div>
               </CardContent>
             </Card>
@@ -148,7 +148,7 @@ export function VideoAdsClient() {
             ) : (
               <Alert>
                 <AlertDescription>
-                  You've reached your daily limit of 5 video ads. Come back tomorrow!
+                  You've reached your daily limit of 25 video ads. Come back tomorrow!
                 </AlertDescription>
               </Alert>
             )}
@@ -156,7 +156,8 @@ export function VideoAdsClient() {
 
           <div className="text-sm text-muted-foreground space-y-1">
             <p>• Each video ad rewards 1 point</p>
-            <p>• Maximum 5 ads per day</p>
+            <p>• Maximum 25 ads per day</p>
+            <p>• Maximum 5 ads every 15 minutes</p>
             <p>• Daily limit resets at midnight</p>
           </div>
         </CardContent>

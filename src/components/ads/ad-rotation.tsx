@@ -117,8 +117,8 @@ const AD_NETWORKS: AdNetwork[] = [
   },
 ];
 
-const IMPRESSIONS_PER_NETWORK = 300;
-const AD_ROTATION_INTERVAL = 15000; // 15 seconds
+const IMPRESSIONS_PER_NETWORK = 1000;
+const AD_ROTATION_INTERVAL = 20000;
 
 interface AdRotationState {
   currentNetworkIndex: number;
@@ -228,10 +228,12 @@ export function RotatingAdSlot({
   }
 
   return (
-    <div
-      key={key}
-      className={`ad-slot ad-slot-${position} ${className}`}
-      dangerouslySetInnerHTML={{ __html: adCode }}
-    />
+    <div className={`ad-slot-wrapper ad-slot-wrapper-${position} ${className}`}>
+      <div
+        key={key}
+        className={`ad-slot ad-slot-${position}`}
+        dangerouslySetInnerHTML={{ __html: adCode }}
+      />
+    </div>
   );
 }
