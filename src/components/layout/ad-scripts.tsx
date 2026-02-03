@@ -39,7 +39,7 @@ export function AdScripts() {
         // Check if ads are detected after scripts load
         setTimeout(() => {
           const finalCheck = document.querySelector(
-            'ins.adsbygoogle, .ad-banner, [id*="ad-"], [class*="ad-"], iframe[src*="highperformanceformat"], iframe[src*="hilltopads"], iframe[src*="acscdn"], iframe[src*="adsterra"]',
+            'ins.adsbygoogle, .ad-banner, [id*="ad-"], [class*="ad-"], iframe[src*="highperformanceformat"], iframe[src*="acscdn"], iframe[src*="adsterra"]',
           );
           if (!finalCheck) {
             // Only warn if ads are truly not detected (silent in production)
@@ -53,9 +53,29 @@ export function AdScripts() {
       }
     };
 
-    // Check after scripts should have loaded
+    const handleExternalClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+      const link = target.closest("a") as HTMLAnchorElement | null;
+      if (!link || !link.href) return;
+      if (link.target === "_blank") return;
+      let url: URL;
+      try {
+        url = new URL(link.href, window.location.href);
+      } catch {
+        return;
+      }
+      if (url.origin === window.location.origin) return;
+      event.preventDefault();
+      window.open(url.toString(), "_blank", "noopener,noreferrer");
+    };
+
     const timer = setTimeout(checkAdScripts, 1500);
-    return () => clearTimeout(timer);
+    document.addEventListener("click", handleExternalClick, true);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("click", handleExternalClick, true);
+    };
   }, []);
 
   return (
@@ -170,6 +190,7 @@ export function AdScripts() {
           }
         }}
       />
+
 
       {/* Ad Network 5: Adsterra - Banner 160x600 (IFRAME SYNC) */}
       <Script
