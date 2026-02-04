@@ -1,278 +1,197 @@
 "use client";
 
-import { useEffect } from "react";
 import Script from "next/script";
 
 /**
  * Ad Scripts Component
- * Loads all ad network scripts in the document head
+ * Loads all Monetag / Adcash banner and native ad scripts.
  *
- * Configured Ad Networks:
- * 1. Autotag (aclib) - Zone ID: 0z4zktony9
- * 2. HighPerformanceFormat - Key: 063b0f69e6d6f3c70c71f435e4ae050c (300x250)
- * 3. Hilltopsads - Dynamic script loader
- * 4. Adcash - Library + Banners (Zones: 10857798, 10857890)
- * 5. Adsterra - Multiple banner formats (160x600, 728x90, 300x250)
+ * Configured formats (from client):
+ * - Banner 468x60  (zoneId: 10938954) via aclib.runBanner
+ * - Banner 120x600 (zoneId: 10938998) via aclib.runBanner
+ * - Banner 300x100 (zoneId: 10939006) via aclib.runBanner
+ * - Banner 468x60  (key: 921c1bfca27bfcfd1521826fee444d71) via highperformanceformat.com
+ * - Banner 320x50  (key: b0b3a451dfc82c360aeeac84fb6be390) via highperformanceformat.com
+ * - Native Vignette (zone: 10556993)
+ * - Native In‑Page Push (zone: 10556997)
  *
- * Removed:
- * - RichInfo (RichAds) - Removed per client request
- * - RollerAds - Disabled due to adult content
+ * HilltopAds 300x250 is intentionally disabled for now because it uses the
+ * domain "hopeful-literature.com", which previously served adult content.
  */
 export function AdScripts() {
-  useEffect(() => {
-    // Initialize aclib.runAutoTag after DOM is ready
-    if (typeof window !== "undefined" && (window as any).aclib) {
-      try {
-        (window as any).aclib.runAutoTag({
-          zoneId: "0z4zktony9",
-        });
-      } catch (error) {
-        if (process.env.NODE_ENV === "development") {
-          console.warn("Autotag initialization error:", error);
-        }
-      }
-    }
-
-    // Silently monitor ad script loading (only log errors, not success)
-    const checkAdScripts = () => {
-      if (typeof window !== "undefined") {
-        // Check if ads are detected after scripts load
-        setTimeout(() => {
-          const finalCheck = document.querySelector(
-            'ins.adsbygoogle, .ad-banner, [id*="ad-"], [class*="ad-"], iframe[src*="highperformanceformat"], iframe[src*="acscdn"], iframe[src*="adsterra"]',
-          );
-          if (!finalCheck) {
-            // Only warn if ads are truly not detected (silent in production)
-            if (process.env.NODE_ENV === "development") {
-              console.warn(
-                "⚠️ No ads detected. Check ad blocker or network approval status.",
-              );
-            }
-          }
-        }, 3000);
-      }
-    };
-
-    const handleExternalClick = (event: MouseEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (!target) return;
-      const link = target.closest("a") as HTMLAnchorElement | null;
-      if (!link || !link.href) return;
-      if (link.target === "_blank") return;
-      let url: URL;
-      try {
-        url = new URL(link.href, window.location.href);
-      } catch {
-        return;
-      }
-      if (url.origin === window.location.origin) return;
-      event.preventDefault();
-      window.open(url.toString(), "_blank", "noopener,noreferrer");
-    };
-
-    const timer = setTimeout(checkAdScripts, 1500);
-    document.addEventListener("click", handleExternalClick, true);
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener("click", handleExternalClick, true);
-    };
-  }, []);
-
   return (
     <>
-      {/* ========================================
-          EXISTING AD NETWORKS
-      ======================================== */}
-
-      {/* Ad Network 1: Autotag (aclib) - Zone ID: 0z4zktony9 */}
+      {/* Adcash / Monetag base library */}
       <Script
-        id="aclib-autotag"
+        id="monetag-aclib-lib"
+        src="//acscdn.com/script/aclib.js"
         strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            (function() {
-              if (typeof window.aclib === 'undefined') {
-                window.aclib = {};
-              }
-              if (typeof window.aclib.runAutoTag === 'undefined') {
-                window.aclib.runAutoTag = function(options) {
-                  if (options && options.zoneId) {
-                    // Autotag will automatically place ads based on zoneId
-                    // The ad network's base script should handle the actual ad placement
-                  }
-                };
-              }
-              // Initialize autotag
-              try {
-                window.aclib.runAutoTag({
-                  zoneId: '0z4zktony9',
-                });
-              } catch (e) {
-                // Silently handle errors
-              }
-            })();
-          `,
-        }}
       />
 
-      {/* Ad Network 2: HighPerformanceFormat - 300x250 Banner */}
+      {/* Banner 468x60 via aclib.runBanner (zoneId: 10938954) */}
+      <div
+        id="monetag-banner-468x60"
+        className="mx-auto my-4 flex justify-center"
+        style={{ maxWidth: 468 }}
+      >
+        <Script
+          id="monetag-banner-468x60-script"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                if (typeof window.aclib !== 'undefined' && typeof window.aclib.runBanner === 'function') {
+                  try {
+                    window.aclib.runBanner({ zoneId: '10938954' });
+                  } catch (e) {
+                    if (process.env.NODE_ENV === 'development') {
+                      console.warn('Monetag banner runBanner error', e);
+                    }
+                  }
+                }
+              })();
+            `,
+          }}
+        />
+      </div>
+
+      {/* Banner 120x600 via aclib.runBanner (zoneId: 10938998) */}
+      <div
+        id="monetag-banner-120x600"
+        className="mx-auto my-4 flex justify-center"
+        style={{ maxWidth: 120 }}
+      >
+        <Script
+          id="monetag-banner-120x600-script"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                if (typeof window.aclib !== 'undefined' && typeof window.aclib.runBanner === 'function') {
+                  try {
+                    window.aclib.runBanner({ zoneId: '10938998' });
+                  } catch (e) {
+                    if (process.env.NODE_ENV === 'development') {
+                      console.warn('Monetag 120x600 runBanner error', e);
+                    }
+                  }
+                }
+              })();
+            `,
+          }}
+        />
+      </div>
+
+      {/* Banner 300x100 via aclib.runBanner (zoneId: 10939006) */}
+      <div
+        id="monetag-banner-300x100"
+        className="mx-auto my-4 flex justify-center"
+        style={{ maxWidth: 300 }}
+      >
+        <Script
+          id="monetag-banner-300x100-script"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                if (typeof window.aclib !== 'undefined' && typeof window.aclib.runBanner === 'function') {
+                  try {
+                    window.aclib.runBanner({ zoneId: '10939006' });
+                  } catch (e) {
+                    if (process.env.NODE_ENV === 'development') {
+                      console.warn('Monetag 300x100 runBanner error', e);
+                    }
+                  }
+                }
+              })();
+            `,
+          }}
+        />
+      </div>
+
+      {/* Banner 468x60 via highperformanceformat.com (key: 921c1bfca27bfcfd1521826fee444d71) */}
       <Script
-        id="highperformanceformat-config"
+        id="monetag-hpf-config-468x60"
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
           __html: `
             var atOptions = {
-              'key' : '063b0f69e6d6f3c70c71f435e4ae050c',
+              'key' : '921c1bfca27bfcfd1521826fee444d71',
               'format' : 'iframe',
-              'height' : 250,
-              'width' : 300,
+              'height' : 60,
+              'width' : 468,
               'params' : {}
             };
           `,
         }}
       />
       <Script
-        id="highperformanceformat-script"
-        src="https://www.highperformanceformat.com/063b0f69e6d6f3c70c71f435e4ae050c/invoke.js"
+        id="monetag-hpf-script-468x60"
+        src="https://www.highperformanceformat.com/921c1bfca27bfcfd1521826fee444d71/invoke.js"
         strategy="afterInteractive"
         async
-        onError={(e) => {
-          if (process.env.NODE_ENV === "development") {
-            console.warn("HighPerformanceFormat script failed to load");
-          }
-        }}
       />
 
-      {/* ========================================
-          NEW AD NETWORKS - CLIENT REQUEST
-      ======================================== */}
-
-      {/* Ad Network 3: Hilltopsads - DISABLED DUE TO ADULT CONTENT */}
-      {/* DISABLED: This network was showing inappropriate adult advertisements
-          Domain: hopeful-literature.com
-          Disabled on: 2026-02-02
-      */}
-      {/*
+      {/* Banner 320x50 via highperformanceformat.com (key: b0b3a451dfc82c360aeeac84fb6be390) */}
       <Script
-        id="hilltopsads-script"
+        id="monetag-hpf-config-320x50"
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
           __html: `
-            (function(wgkb){
+            var atOptions = {
+              'key' : 'b0b3a451dfc82c360aeeac84fb6be390',
+              'format' : 'iframe',
+              'height' : 50,
+              'width' : 320,
+              'params' : {}
+            };
+          `,
+        }}
+      />
+      <Script
+        id="monetag-hpf-script-320x50"
+        src="https://www.highperformanceformat.com/b0b3a451dfc82c360aeeac84fb6be390/invoke.js"
+        strategy="afterInteractive"
+        async
+      />
+
+      {/* HilltopAds 300x250 (zone #6764201) - DISABLED due to adult / unsafe content risk
+      
+      <Script
+        id="hilltopads-300x250"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: \`
+            (function(pjcgm){
               var d = document,
                   s = d.createElement('script'),
                   l = d.scripts[d.scripts.length - 1];
-              s.settings = wgkb || {};
-              s.src = "//hopeful-literature.com/bfX/V.swdiGUly0RYKW-cV/_e-m/9/uqZ/UNlikfPaTQY/3EMWzvkk1BO/TKc/tpNLjHc/zdOvTCUK5/OcAO";
+              s.settings = pjcgm || {};
+              s.src = "//hopeful-literature.com/bIXeV.spdSG_lw0aYKW/cB/KeBmo9/u/ZkUflVk/PRTYYV3iN/j/Q/y/MvDSEJt/NGjCcP2fNGDpIpwON/Qp";
               s.async = true;
               s.referrerPolicy = 'no-referrer-when-downgrade';
               l.parentNode.insertBefore(s, l);
             })({})
-          `,
-        }}
-        onError={(e) => {
-          if (process.env.NODE_ENV === "development") {
-            console.warn("Hilltopsads script failed to load");
-          }
+          \`,
         }}
       />
       */}
 
-      {/* Ad Network 4: Adcash - Library Script (Load Once) */}
+      {/* Native Vignette (zone: 10556993) */}
       <Script
-        id="aclib"
-        type="text/javascript"
-        src="//acscdn.com/script/aclib.js"
-        strategy="afterInteractive"
-        onError={(e) => {
-          if (process.env.NODE_ENV === "development") {
-            console.warn("Adcash library failed to load");
-          }
-        }}
-      />
-
-
-      {/* Ad Network 5: Adsterra - Banner 160x600 (IFRAME SYNC) */}
-      <Script
-        id="adsterra-160x600-config"
+        id="monetag-vignette-10556993"
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
-          __html: `
-            var atOptions_160x600 = {
-              'key' : '9b025dee52a2b0c32481b868d751d1dd',
-              'format' : 'iframe',
-              'height' : 600,
-              'width' : 160,
-              'params' : {}
-            };
-          `,
-        }}
-      />
-      <Script
-        id="adsterra-160x600-script"
-        src="https://www.highperformanceformat.com/9b025dee52a2b0c32481b868d751d1dd/invoke.js"
-        strategy="afterInteractive"
-        async
-        onError={(e) => {
-          if (process.env.NODE_ENV === "development") {
-            console.warn("Adsterra 160x600 script failed to load");
-          }
+          __html: `(function(s){s.dataset.zone='10556993';s.src='https://gizokraijaw.net/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))`, // from client
         }}
       />
 
-      {/* Ad Network 6: Adsterra - Banner 728x90 (IFRAME SYNC - Head/Foot) */}
+      {/* Native In‑Page Push (zone: 10556997) */}
       <Script
-        id="adsterra-728x90-config"
+        id="monetag-inpage-10556997"
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
-          __html: `
-            var atOptions_728x90 = {
-              'key' : 'b3c66cf41e55995ac85aa5b2934d3e75',
-              'format' : 'iframe',
-              'height' : 90,
-              'width' : 728,
-              'params' : {}
-            };
-          `,
-        }}
-      />
-      <Script
-        id="adsterra-728x90-script"
-        src="https://www.highperformanceformat.com/b3c66cf41e55995ac85aa5b2934d3e75/invoke.js"
-        strategy="afterInteractive"
-        async
-        onError={(e) => {
-          if (process.env.NODE_ENV === "development") {
-            console.warn("Adsterra 728x90 script failed to load");
-          }
-        }}
-      />
-
-      {/* Ad Network 7: Adsterra - Banner 300x250 (IFRAME SYNC) */}
-      <Script
-        id="adsterra-300x250-config"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            var atOptions_300x250 = {
-              'key' : '863b0f69e6d6f3c70c71f435e4ae050c',
-              'format' : 'iframe',
-              'height' : 250,
-              'width' : 300,
-              'params' : {}
-            };
-          `,
-        }}
-      />
-      <Script
-        id="adsterra-300x250-script"
-        src="https://www.highperformanceformat.com/863b0f69e6d6f3c70c71f435e4ae050c/invoke.js"
-        strategy="afterInteractive"
-        async
-        onError={(e) => {
-          if (process.env.NODE_ENV === "development") {
-            console.warn("Adsterra 300x250 script failed to load");
-          }
+          __html: `(function(s){s.dataset.zone='10556997';s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))`, // from client
         }}
       />
     </>

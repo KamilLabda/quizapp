@@ -57,6 +57,20 @@ export function VideoAdsClient() {
       setRemaining(data.remainingToday);
       setPoints(data.newTotalPoints);
 
+      // Open video ad in a new tab using VAST tags (Hilltop + Adcash)
+      // Rotate between the two sources for each impression
+      const vastTags = [
+        // Hilltop VAST / video tag
+        'https://envious-concept.com/damyF.z/dKGYNCvsZ-GmUl/Wefmw9/u/ZfUxlZkdP/TRYd3TNzjJQ_yuMdjxUjtVNCj/cu2ZN/DzImyfO/QZ',
+        // Adcash VAST tag
+        'https://youradexchange.com/video/select.php?r=10939242',
+      ];
+      const selectedTag =
+        vastTags[Math.floor(Math.random() * vastTags.length)];
+      if (typeof window !== 'undefined') {
+        window.open(selectedTag, '_blank', 'noopener,noreferrer');
+      }
+
       // Show success toast
       toast({
         variant: 'success',
