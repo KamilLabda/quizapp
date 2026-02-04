@@ -59,9 +59,16 @@ export async function POST(request: NextRequest) {
       remainingToday: MAX_VIDEO_ADS_PER_DAY - updatedReward.count,
     });
   } catch (error) {
+    const message = error instanceof Error ? error.message : '';
     console.error('Error watching video ad:', error);
+    if (message === 'User not found') {
+      return NextResponse.json(
+        { error: 'Your account could not be found. Please log in again.' },
+        { status: 404 }
+      );
+    }
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Unable to record the video ad. Please try again.' },
       { status: 500 }
     );
   }

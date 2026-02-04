@@ -418,11 +418,15 @@ export async function incrementVideoAdReward(userId: string, date: string, times
     { upsert: true, returnDocument: 'after' }
   );
 
+  if (!result) {
+    throw new Error('Failed to update video ad reward');
+  }
+
   return {
     userId,
-    date: result!.date,
-    count: result!.count || 0,
-    timestamps: result!.timestamps || [],
+    date: result.date,
+    count: result.count || 0,
+    timestamps: result.timestamps || [],
   };
 }
 

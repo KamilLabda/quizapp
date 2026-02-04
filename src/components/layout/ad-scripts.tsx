@@ -15,8 +15,9 @@ import Script from "next/script";
  * - Native Vignette (zone: 10556993)
  * - Native In‑Page Push (zone: 10556997)
  *
- * HilltopAds 300x250 is intentionally disabled for now because it uses the
- * domain "hopeful-literature.com", which previously served adult content.
+ * HilltopAds: The 300x250 script is disabled and lives in the commented-out
+ * block below in this file (search for "HilltopAds" or "hopeful-literature").
+ * Reason: domain "hopeful-literature.com" previously served adult content.
  */
 export function AdScripts() {
   return (
