@@ -406,15 +406,35 @@ export async function incrementVideoAdReward(userId: string, date: string, times
   const db = await connectDB();
   const userIdValue = isValidObjectId(userId) ? toObjectId(userId) : userId;
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const update = {
-    $inc: { count: 1 },
-    $push: { timestamps: { $each: [timestamp], $slice: -200 } },
-    $pull: { timestamps: { $lt: cutoff } },
-  } as any;
-  
+  // Use aggregation pipeline: cannot use both $push and $pull on 'timestamps' in one update
+  const pipeline = [
+    {
+      $set: {
+        timestamps: {
+          $slice: [
+            {
+              $concatArrays: [
+                {
+                  $filter: {
+                    input: { $ifNull: ['$timestamps', []] },
+                    as: 't',
+                    cond: { $gte: ['$$t', cutoff] },
+                  },
+                },
+                [timestamp],
+              ],
+            },
+            -200,
+          ],
+        },
+      },
+    },
+    { $set: { count: { $size: '$timestamps' } } },
+  ];
+
   const result = await db.collection('videoadrewards').findOneAndUpdate(
     { userId: userIdValue, date },
-    update,
+    pipeline,
     { upsert: true, returnDocument: 'after' }
   );
 
