@@ -68,25 +68,10 @@ export function PageWithAds({ children, surveyId, showSidebar = true }: PageWith
         )}
       </div>
 
-      {/* Bottom Ad - Centered with proper spacing */}
+      {/* Bottom Ad — HPF disabled to prevent redirects; use Adcash or placeholder if needed */}
       <div className="mt-8 md:mt-12 w-full flex justify-center">
         <div className="w-full max-w-[320px] md:max-w-[728px] lg:max-w-[970px]">
-          <div
-            dangerouslySetInnerHTML={{
-              __html: `
-                <script>
-                  atOptions = {
-                    'key' : 'b0b3a451dfc82c360aeeac84fb6be390',
-                    'format' : 'iframe',
-                    'height' : 50,
-                    'width' : 320,
-                    'params' : {}
-                  };
-                </script>
-                <script src="https://www.highperformanceformat.com/b0b3a451dfc82c360aeeac84fb6be390/invoke.js"></script>
-              `,
-            }}
-          />
+          <AdcashBanner zoneId="10939006" />
         </div>
       </div>
     </div>

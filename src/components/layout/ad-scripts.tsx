@@ -4,20 +4,12 @@ import Script from "next/script";
 
 /**
  * Ad Scripts Component
- * Loads all Monetag / Adcash banner and native ad scripts.
  *
- * Configured formats (from client):
- * - Banner 468x60  (zoneId: 10938954) via aclib.runBanner
- * - Banner 120x600 (zoneId: 10938998) via aclib.runBanner
- * - Banner 300x100 (zoneId: 10939006) via aclib.runBanner
- * - Banner 468x60  (key: 921c1bfca27bfcfd1521826fee444d71) via highperformanceformat.com
- * - Banner 320x50  (key: b0b3a451dfc82c360aeeac84fb6be390) via highperformanceformat.com
- * - Native Vignette (zone: 10556993)
- * - Native In‑Page Push (zone: 10556997)
+ * Only two things are commented out:
+ * 1. REDIRECTION: HighPerformanceFormat (highperformanceformat.com) — causes page redirects.
+ * 2. ADULT: HilltopAds (hopeful-literature.com) — has served adult ads.
  *
- * HilltopAds: The 300x250 script is disabled and lives in the commented-out
- * block below in this file (search for "HilltopAds" or "hopeful-literature").
- * Reason: domain "hopeful-literature.com" previously served adult content.
+ * All banner ads below are ACTIVE: aclib banners (468x60, 120x600, 300x100) and native (Vignette, In‑Page Push).
  */
 export function AdScripts() {
   return (
@@ -110,59 +102,21 @@ export function AdScripts() {
         />
       </div>
 
-      {/* Banner 468x60 via highperformanceformat.com (key: 921c1bfca27bfcfd1521826fee444d71) */}
-      <Script
-        id="monetag-hpf-config-468x60"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            var atOptions = {
-              'key' : '921c1bfca27bfcfd1521826fee444d71',
-              'format' : 'iframe',
-              'height' : 60,
-              'width' : 468,
-              'params' : {}
-            };
-          `,
-        }}
-      />
-      <Script
-        id="monetag-hpf-script-468x60"
-        src="https://www.highperformanceformat.com/921c1bfca27bfcfd1521826fee444d71/invoke.js"
-        strategy="afterInteractive"
-        async
-      />
+      {/* ─── HighPerformanceFormat: DISABLED — causes page redirections ─────────
+          HPF invoke.js (468x60, 320x50, Adsterra slots) is the confirmed redirect
+          source. Re-enable only after provider confirms fix.
+      <Script id="monetag-hpf-config-468x60" ... />
+      <Script id="monetag-hpf-script-468x60" src="https://www.highperformanceformat.com/.../invoke.js" ... />
+      <Script id="monetag-hpf-config-320x50" ... />
+      <Script id="monetag-hpf-script-320x50" src="https://www.highperformanceformat.com/.../invoke.js" ... />
+      ─── End HPF (do not re-enable without testing) ─── */}
 
-      {/* Banner 320x50 via highperformanceformat.com (key: b0b3a451dfc82c360aeeac84fb6be390) */}
-      <Script
-        id="monetag-hpf-config-320x50"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            var atOptions = {
-              'key' : 'b0b3a451dfc82c360aeeac84fb6be390',
-              'format' : 'iframe',
-              'height' : 50,
-              'width' : 320,
-              'params' : {}
-            };
-          `,
-        }}
-      />
-      <Script
-        id="monetag-hpf-script-320x50"
-        src="https://www.highperformanceformat.com/b0b3a451dfc82c360aeeac84fb6be390/invoke.js"
-        strategy="afterInteractive"
-        async
-      />
-
-      {/* HilltopAds 300x250 (zone #6764201) - DISABLED due to adult / unsafe content risk
-      
-      <Script
+      {/* HilltopAds 300x250 — DISABLED: serves adult ads (hopeful-literature.com). Do not re-enable. */}
+      {/* <Script
         id="hilltopads-300x250"
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
-          __html: \`
+          __html: `
             (function(pjcgm){
               var d = document,
                   s = d.createElement('script'),
@@ -173,10 +127,9 @@ export function AdScripts() {
               s.referrerPolicy = 'no-referrer-when-downgrade';
               l.parentNode.insertBefore(s, l);
             })({})
-          \`,
+          `,
         }}
-      />
-      */}
+      /> */}
 
       {/* Native Vignette (zone: 10556993) */}
       <Script

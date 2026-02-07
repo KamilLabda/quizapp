@@ -55,66 +55,18 @@ const AD_NETWORKS: AdNetwork[] = [
       `,
     },
   },
+  /* Adsterra/HPF disabled: highperformanceformat.com invoke.js causes page redirections.
   {
     id: "adsterra",
     name: "Adsterra",
-    bannerCode: {
-      top: `
-        <script>
-          atOptions = {
-            'key': 'b3c66cf41e55995ac85aa5b2934d3e75',
-            'format': 'iframe',
-            'height': 90,
-            'width': 728,
-            'params': {}
-          };
-        </script>
-        <script src="https://www.highperformanceformat.com/b3c66cf41e55995ac85aa5b2934d3e75/invoke.js"></script>
-      `,
-      left: `
-        <script>
-          atOptions = {
-            'key': '9b025dee52a2b0c32481b868d751d1dd',
-            'format': 'iframe',
-            'height': 600,
-            'width': 160,
-            'params': {}
-          };
-        </script>
-        <script src="https://www.highperformanceformat.com/9b025dee52a2b0c32481b868d751d1dd/invoke.js"></script>
-      `,
-      inContent: `
-        <script>
-          atOptions = {
-            'key': '863b0f69e6d6f3c70c71f435e4ae050c',
-            'format': 'iframe',
-            'height': 250,
-            'width': 300,
-            'params': {}
-          };
-        </script>
-        <script src="https://www.highperformanceformat.com/863b0f69e6d6f3c70c71f435e4ae050c/invoke.js"></script>
-      `,
-    },
+    bannerCode: { top: `...HPF...`, left: `...HPF...`, inContent: `...HPF...` },
   },
   {
     id: "highperformance",
     name: "HighPerformanceFormat",
-    bannerCode: {
-      inContent: `
-        <script>
-          atOptions = {
-            'key': '063b0f69e6d6f3c70c71f435e4ae050c',
-            'format': 'iframe',
-            'height': 250,
-            'width': 300,
-            'params': {}
-          };
-        </script>
-        <script src="https://www.highperformanceformat.com/063b0f69e6d6f3c70c71f435e4ae050c/invoke.js"></script>
-      `,
-    },
+    bannerCode: { inContent: `...HPF...` },
   },
+  */
 ];
 
 const IMPRESSIONS_PER_NETWORK = 1000;
