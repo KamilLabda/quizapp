@@ -101,12 +101,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify signature (if provided)
+    // NOTE: For now we **do not reject** postbacks on signature mismatch,
+    // because different KiwiWall configurations use different signing schemes.
+    // We log verification failures but still process the lead so valid
+    // completions are not lost while we finalize the exact hash format.
     if (params.signature && !verifyKiwiWallSignature(params)) {
-      console.error('KiwiWall postback signature verification failed', params);
-      return NextResponse.json(
-        { error: 'Invalid signature' },
-        { status: 401 }
-      );
+      console.warn('KiwiWall postback signature verification failed (ignored for now)', {
+        sub_id: params.sub_id,
+        transaction_id: params.transaction_id,
+        offer_id: params.offer_id,
+      });
     }
 
     // Get user by ID (sub_id should be the user ID)
