@@ -83,9 +83,10 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ToastProvider>
-          <AdVerification />
+          {/* Ads disabled via ADS_DISABLED in ad-scripts.tsx - uncomment below to re-enable */}
+          {/* <AdVerification /> */}
           <AdScripts />
-          <AdPositionFix />
+          {/* <AdPositionFix /> */}
           <ScrollToTop />
           <Header />
           <div className="flex flex-col min-h-screen">
@@ -97,20 +98,19 @@ export default function RootLayout({
             <Footer />
           </div>
         </ToastProvider>
-        {/* Autotag script - placed before closing body tag as recommended */}
+        {/* runAutoTag - disabled per client. Uncomment to re-enable:
         <Script
           id="aclib-autotag-body"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               if (typeof window.aclib !== 'undefined' && typeof window.aclib.runAutoTag === 'function') {
-                window.aclib.runAutoTag({
-                  zoneId: '0z4zktony9',
-                });
+                window.aclib.runAutoTag({ zoneId: '0z4zktony9' });
               }
             `,
           }}
         />
+        */}
       </body>
     </html>
   );

@@ -161,10 +161,14 @@ interface RotatingAdSlotProps {
   className?: string;
 }
 
+// ALL ADS DISABLED per client. Set to false to re-enable RotatingAdSlot.
+const ALL_ADS_DISABLED = true;
+
 export function RotatingAdSlot({
   position,
   className = "",
 }: RotatingAdSlotProps) {
+  if (ALL_ADS_DISABLED) return null;
   const { currentNetwork } = useAdRotation();
   const [key, setKey] = useState(0);
 

@@ -28,13 +28,14 @@ const KIWIWALL_SECRET = process.env.KIWIWALL_SECRET || 'qwjnbzxkhz6qnf1tiw5skz6z
 
 interface KiwiWallPostbackParams {
   sub_id?: string;
+  subid?: string;
   transaction_id?: string;
   reward?: string;
+  payout?: string;
   currency?: string;
   signature?: string;
   offer_id?: string;
   offer_name?: string;
-  // Additional fields KiwiWall might send
   [key: string]: string | undefined;
 }
 
@@ -78,57 +79,48 @@ export async function POST(request: NextRequest) {
     let params: KiwiWallPostbackParams = {};
 
     if (contentType.includes('application/json')) {
-      params = await request.json();
+      params = (await request.json()) as KiwiWallPostbackParams;
     } else if (contentType.includes('application/x-www-form-urlencoded')) {
       const formData = await request.formData();
       formData.forEach((value, key) => {
         params[key] = value.toString();
       });
     } else {
-      // Try parsing from URL search params
       const url = new URL(request.url);
       url.searchParams.forEach((value, key) => {
         params[key] = value;
       });
+      if (Object.keys(params).length === 0) {
+        const raw = await request.text();
+        if (raw && raw.includes('=')) {
+          const searchParams = new URLSearchParams(raw);
+          searchParams.forEach((value, key) => {
+            params[key] = value;
+          });
+        }
+      }
     }
 
-    // Validate required parameters
-    if (!params.sub_id) {
+    const subId = params.sub_id || params.subid;
+    if (!subId) {
       return NextResponse.json(
         { error: 'sub_id is required' },
         { status: 400 }
       );
     }
 
-    // Verify signature (if provided)
-    // NOTE: For now we **do not reject** postbacks on signature mismatch,
-    // because different KiwiWall configurations use different signing schemes.
-    // We log verification failures but still process the lead so valid
-    // completions are not lost while we finalize the exact hash format.
-    if (params.signature && !verifyKiwiWallSignature(params)) {
-      console.warn('KiwiWall postback signature verification failed (ignored for now)', {
-        sub_id: params.sub_id,
-        transaction_id: params.transaction_id,
-        offer_id: params.offer_id,
-      });
-    }
-
-    // Get user by ID (sub_id should be the user ID)
-    const userId = params.sub_id;
+    const userId = subId;
     const user = await getUserById(userId);
 
     if (!user) {
-      console.error('KiwiWall postback: User not found', userId);
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       );
     }
 
-    // Parse reward amount
-    const rewardAmount = parseFloat(params.reward || '0');
+    const rewardAmount = parseFloat(params.reward || params.payout || '0');
     if (isNaN(rewardAmount) || rewardAmount <= 0) {
-      console.error('KiwiWall postback: Invalid reward amount', params.reward);
       return NextResponse.json(
         { error: 'Invalid reward amount' },
         { status: 400 }
@@ -142,17 +134,7 @@ export async function POST(request: NextRequest) {
     // CRITICAL: Check if this transaction was already processed
     const alreadyProcessed = await hasTransactionBeenProcessed('kiwiwall', transactionId);
     if (alreadyProcessed) {
-      console.warn('KiwiWall postback: Duplicate transaction detected', {
-        transactionId,
-        userId,
-        offerId: params.offer_id,
-      });
-      return NextResponse.json({
-        status: 'success',
-        message: 'Transaction already processed',
-        transaction_id: transactionId,
-        duplicate: true,
-      });
+      return new Response('1', { status: 200, headers: { 'Content-Type': 'text/plain' } });
     }
 
     // Check daily limits
@@ -182,8 +164,7 @@ export async function POST(request: NextRequest) {
           userAgent: request.headers.get('user-agent') || undefined,
         },
       });
-    } catch (err) {
-      console.error('KiwiWall postback: Failed to record transaction', err);
+    } catch {
       return NextResponse.json(
         { error: 'Failed to record transaction' },
         { status: 500 }
@@ -210,18 +191,16 @@ export async function POST(request: NextRequest) {
           userAgent: request.headers.get('user-agent') || undefined,
         },
       });
-    } catch (err) {
-      // If recording fails due to duplicate, that's okay - continue
-      console.warn('KiwiWall postback: Survey completion recording warning', err);
+    } catch {
+      // Non-critical
     }
 
-    // Update daily limit
     try {
       await updateDailyLimit(userId, today, {
         surveysCompleted: [surveyId],
       });
-    } catch (err) {
-      console.warn('KiwiWall postback: Failed to update daily limit', err);
+    } catch {
+      // Non-critical
     }
 
     // Award points - this is the critical operation
@@ -231,14 +210,11 @@ export async function POST(request: NextRequest) {
       
       // Update transaction status to completed
       await updateOfferwallTransactionStatus(transactionRecord.id, 'completed');
-    } catch (err) {
-      console.error('KiwiWall postback: Failed to award points', err);
-      
-      // Update transaction status to failed
+    } catch {
       try {
         await updateOfferwallTransactionStatus(transactionRecord.id, 'failed');
-      } catch (updateErr) {
-        console.error('KiwiWall postback: Failed to update transaction status', updateErr);
+      } catch {
+        // Ignore
       }
       
       return NextResponse.json(
@@ -263,27 +239,14 @@ export async function POST(request: NextRequest) {
           currency: params.currency || 'points',
         },
       });
-    } catch (err) {
-      console.warn('Failed to log analytics:', err);
+    } catch {
+      // Non-critical
     }
 
-    // Return success response
-    // KiwiWall expects a specific response format
-    return NextResponse.json({
-      status: 'success',
-      message: 'Postback processed successfully',
-      user_id: userId,
-      points_added: pointsToAdd,
-      new_total_points: newPoints,
-      transaction_id: transactionId,
-    });
-  } catch (error) {
-    console.error('KiwiWall postback error:', error);
+    return new Response('1', { status: 200, headers: { 'Content-Type': 'text/plain' } });
+  } catch {
     return NextResponse.json(
-      { 
-        status: 'error',
-        error: error instanceof Error ? error.message : 'Internal server error'
-      },
+      { status: 'error', error: 'Internal server error' },
       { status: 500 }
     );
   }

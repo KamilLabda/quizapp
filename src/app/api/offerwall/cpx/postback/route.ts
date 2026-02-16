@@ -37,15 +37,17 @@ const CPX_SECURE_HASH_KEY = process.env.CPX_SECURE_HASH_KEY || '';
 interface CPXPostbackParams {
   user_id?: string;
   uid?: string;
+  ext_user_id?: string;
+  sub_id?: string; // Fallback for user ID in some CPX configs
   trans_id?: string;
   transaction_id?: string;
   tx_id?: string;
-  amount_local?: string; // REQUIRED - reward in local currency
-  amount_usd?: string; // REQUIRED - reward in USD
+  amount_local?: string;
+  amount_usd?: string;
+  payout?: string; // Alternative param from some networks
   status?: string; // 1 = pending, 2 = reversed
   offer_ID?: string;
   offer_id?: string;
-  sub_id?: string;
   sub_id_2?: string;
   hash?: string; // Secure hash for verification
   ip_click?: string;
@@ -110,22 +112,31 @@ export async function POST(request: NextRequest) {
     let params: CPXPostbackParams = {};
 
     if (contentType.includes('application/json')) {
-      params = await request.json();
+      params = (await request.json()) as CPXPostbackParams;
     } else if (contentType.includes('application/x-www-form-urlencoded')) {
       const formData = await request.formData();
       formData.forEach((value, key) => {
         params[key] = value.toString();
       });
     } else {
-      // Try parsing from URL search params
+      // Parse from URL query or raw body (some networks send query string without Content-Type)
       const url = new URL(request.url);
       url.searchParams.forEach((value, key) => {
         params[key] = value;
       });
+      if (Object.keys(params).length === 0) {
+        const raw = await request.text();
+        if (raw && raw.includes('=')) {
+          const searchParams = new URLSearchParams(raw);
+          searchParams.forEach((value, key) => {
+            params[key] = value;
+          });
+        }
+      }
     }
 
-    // Get user ID (CPX uses user_id)
-    const userId = params.user_id || params.uid;
+    // Get user ID (CPX may send user_id, ext_user_id, uid, or sub_id)
+    const userId = params.user_id || params.ext_user_id || params.uid || params.sub_id;
     if (!userId) {
       return NextResponse.json(
         { error: 'user_id is required' },
@@ -133,16 +144,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate required CPX parameters
-    if (!params.amount_local && !params.amount_usd) {
-      // Only require amounts for completion postbacks (status=1)
-      // Reversed postbacks (status=2) may not have amounts
-      if (params.status !== '2') {
-        return NextResponse.json(
-          { error: 'amount_local or amount_usd is required' },
-          { status: 400 }
-        );
-      }
+    if (!params.amount_local && !params.amount_usd && !params.payout && params.status !== '2') {
+      return NextResponse.json(
+        { error: 'amount_local, amount_usd or payout is required' },
+        { status: 400 }
+      );
     }
 
     // Get transaction ID (CPX uses trans_id)
@@ -154,24 +160,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify hash (if provided)
-    // IMPORTANT: For now we **do not reject** postbacks on hash mismatch.
-    // CPX supports several hash formats and the exact formula can differ
-    // per integration. Until we have confirmation from CPX docs/support,
-    // we log hash verification failures but still credit valid leads so
-    // tests from real users are not lost.
-    if (params.hash && !verifyCPXHash(params)) {
-      console.warn('CPX Research postback hash verification failed (ignored for now)', {
-        receivedHash: params.hash,
-        transId: transactionId,
-        userId,
-      });
-    }
-
-    // Get user
     const user = await getUserById(userId);
     if (!user) {
-      console.error('CPX Research postback: User not found', userId);
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -186,18 +176,7 @@ export async function POST(request: NextRequest) {
     // Check if transaction already processed (prevent duplicates)
     const alreadyProcessed = await hasTransactionBeenProcessed('cpx-research', transactionId);
     if (alreadyProcessed && eventType !== 'reversed') {
-      console.warn('CPX Research postback: Duplicate transaction detected', {
-        transactionId,
-        userId,
-        offerId,
-        status: params.status,
-      });
-      return NextResponse.json({
-        status: 'success',
-        message: 'Transaction already processed',
-        trans_id: transactionId,
-        duplicate: true,
-      });
+      return new Response('1', { status: 200, headers: { 'Content-Type': 'text/plain' } });
     }
 
     // Handle different event types
@@ -227,35 +206,16 @@ export async function POST(request: NextRequest) {
               reversed: true,
             },
           });
-          
-          // Update transaction status to failed (reversed)
-          // Note: In a full implementation, you'd want to actually deduct the points
-          // For now, we'll just log it
-          console.warn('CPX Research postback: Transaction reversed', {
-            transactionId,
-            userId,
-            offerId,
-          });
         }
-        
-        return NextResponse.json({
-          status: 'success',
-          message: 'Transaction reversal processed',
-          trans_id: transactionId,
-          transaction_status: '2',
-        });
+        return new Response('1', { status: 200, headers: { 'Content-Type': 'text/plain' } });
 
       case 'pending':
       case 'complete':
       default:
         // Complete offer (status=1 or default) - award points
         // Use amount_usd if available, otherwise amount_local
-        const rewardAmount = parseFloat(params.amount_usd || params.amount_local || '0');
+        const rewardAmount = parseFloat(params.amount_usd || params.amount_local || params.payout || '0');
         if (isNaN(rewardAmount) || rewardAmount <= 0) {
-          console.error('CPX Research postback: Invalid reward amount', {
-            amount_usd: params.amount_usd,
-            amount_local: params.amount_local,
-          });
           return NextResponse.json(
             { error: 'Invalid reward amount' },
             { status: 400 }
@@ -291,8 +251,7 @@ export async function POST(request: NextRequest) {
               userAgent: request.headers.get('user-agent') || undefined,
             },
           });
-        } catch (err) {
-          console.error('CPX Research postback: Failed to record transaction', err);
+        } catch {
           return NextResponse.json(
             { error: 'Failed to record transaction' },
             { status: 500 }
@@ -319,17 +278,16 @@ export async function POST(request: NextRequest) {
               userAgent: request.headers.get('user-agent') || undefined,
             },
           });
-        } catch (err) {
-          console.warn('CPX Research postback: Survey completion recording warning', err);
+        } catch {
+          // Survey completion recording is non-critical
         }
 
-        // Update daily limit
         try {
           await updateDailyLimit(userId, today, {
             surveysCompleted: [surveyId],
           });
-        } catch (err) {
-          console.warn('CPX Research postback: Failed to update daily limit', err);
+        } catch {
+          // Non-critical
         }
 
         // Award points
@@ -337,12 +295,11 @@ export async function POST(request: NextRequest) {
         try {
           newPoints = await addPoints(userId, pointsToAdd);
           await updateOfferwallTransactionStatus(transactionRecord.id, 'completed');
-        } catch (err) {
-          console.error('CPX Research postback: Failed to award points', err);
+        } catch {
           try {
             await updateOfferwallTransactionStatus(transactionRecord.id, 'failed');
-          } catch (updateErr) {
-            console.error('CPX Research postback: Failed to update transaction status', updateErr);
+          } catch {
+            // Ignore
           }
           return NextResponse.json(
             { error: 'Failed to award points' },
@@ -369,28 +326,15 @@ export async function POST(request: NextRequest) {
               sub_id_2: params.sub_id_2,
             },
           });
-        } catch (err) {
-          console.warn('Failed to log analytics:', err);
+        } catch {
+          // Analytics is non-critical
         }
 
-        return NextResponse.json({
-          status: 'success',
-          message: 'Postback processed successfully',
-          user_id: userId,
-          trans_id: transactionId,
-          points_added: pointsToAdd,
-          new_total_points: newPoints,
-          amount_local: params.amount_local,
-          amount_usd: params.amount_usd,
-        });
+        return new Response('1', { status: 200, headers: { 'Content-Type': 'text/plain' } });
     }
-  } catch (error) {
-    console.error('CPX Research postback error:', error);
+  } catch {
     return NextResponse.json(
-      { 
-        status: 'error',
-        error: error instanceof Error ? error.message : 'Internal server error'
-      },
+      { status: 'error', error: 'Internal server error' },
       { status: 500 }
     );
   }
