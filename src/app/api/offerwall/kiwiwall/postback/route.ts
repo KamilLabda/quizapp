@@ -125,6 +125,7 @@ export async function POST(request: NextRequest) {
         { error: 'Invalid reward amount' },
         { status: 400 }
       );
+      
     }
 
     // Check if transaction already processed (prevent duplicate rewards)
